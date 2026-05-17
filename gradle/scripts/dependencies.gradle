@@ -77,8 +77,11 @@ dependencies {
     implementation "com.fasterxml.jackson.module:jackson-module-parameter-names:2.10.0"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.10.0"
 
-    // Include all dependencies in the /dependencies folder
-    shadow fileTree(include: ["*.jar"], dir: "dependencies")
+    //picocli jar
+    shadow fileTree("dependencies/picocli-4.0.1.jar")
+
+    //celeritas jar for compat
+    //implementation files("dependencies/celeritas-forge-mc12.2-2.4.0-dev.jar")
 
     // junit tests
     testImplementation 'org.junit.jupiter:junit-jupiter:5.6.2'
