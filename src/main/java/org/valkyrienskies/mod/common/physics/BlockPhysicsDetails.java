@@ -18,6 +18,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
+/**
+ * TODO: replace numerical masses with just enums that each have fixed masses
+ * */
 public class BlockPhysicsDetails {
 
     static final String BLOCK_MASS_VERSION = "v0.1";

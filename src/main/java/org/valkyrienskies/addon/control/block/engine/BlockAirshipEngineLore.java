@@ -44,8 +44,7 @@ public abstract class BlockAirshipEngineLore extends BlockAirshipEngine {
     }
 
     @Override
-    public boolean shouldLocalForceBeRotated(World world, BlockPos pos, IBlockState state,
-        double secondsToApply) {
+    public boolean shouldLocalForceBeRotated(World world, BlockPos pos, IBlockState state, double secondsToApply) {
         return true;
     }
 

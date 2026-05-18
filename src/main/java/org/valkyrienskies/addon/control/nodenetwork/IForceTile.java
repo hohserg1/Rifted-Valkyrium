@@ -5,7 +5,6 @@ import org.joml.Vector3dc;
 import org.valkyrienskies.mod.common.ships.ship_world.PhysicsObject;
 
 public interface IForceTile {
-
     /**
      * Used to tell what direction of force an engine will output at a given instant.
      */
@@ -15,11 +14,10 @@ public interface IForceTile {
      * Returns the current unoriented force output vector of this engine
      */
     default Vector3dc getForceOutputUnoriented(double secondsToApply, PhysicsObject physicsObject) {
-        Vector3dc forceVectorNormal = getForceOutputNormal(secondsToApply, physicsObject);
-        if (forceVectorNormal == null) {
-            return new Vector3d();
-        }
-        double thrustMag = getThrustMagnitude(physicsObject) * secondsToApply;
+        Vector3dc forceVectorNormal = this.getForceOutputNormal(secondsToApply, physicsObject);
+        if (forceVectorNormal == null) return new Vector3d();
+
+        double thrustMag = this.getThrustMagnitude(physicsObject) * secondsToApply;
         return forceVectorNormal.mul(thrustMag, new Vector3d());
     }
 

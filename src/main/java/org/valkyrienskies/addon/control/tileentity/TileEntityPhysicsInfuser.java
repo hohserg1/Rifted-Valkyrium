@@ -133,7 +133,8 @@ public class TileEntityPhysicsInfuser extends TileEntity implements ITickable, I
 
             // Send any updates to clients
             if (sendUpdateToClients) {
-                VSNetwork.sendTileToAllNearby(this);
+                IBlockState blockState = this.getWorld().getBlockState(this.getPos());
+                this.getWorld().notifyBlockUpdate(this.getPos(), blockState, blockState, 0);
                 sendUpdateToClients = false;
             }
         } else {

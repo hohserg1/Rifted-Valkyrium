@@ -1,6 +1,7 @@
 package org.valkyrienskies.addon.control.block.multiblocks;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -80,7 +81,8 @@ public abstract class TileEntityMultiblockPart<E extends IMultiblockSchematic, F
         this.isAssembled = false;
         this.isMaster = false;
         this.multiblockSchematic = null;
-        VSNetwork.sendTileToAllNearby(this);
+        IBlockState blockState = this.getWorld().getBlockState(this.getPos());
+        this.getWorld().notifyBlockUpdate(this.getPos(), blockState, blockState, 0);
         this.markDirty();
     }
 
@@ -90,7 +92,8 @@ public abstract class TileEntityMultiblockPart<E extends IMultiblockSchematic, F
         this.isMaster = relativePos.equals(BlockPos.ORIGIN);
         this.offsetPos = relativePos;
         this.multiblockSchematic = schematic;
-        VSNetwork.sendTileToAllNearby(this);
+        IBlockState blockState = this.getWorld().getBlockState(this.getPos());
+        this.getWorld().notifyBlockUpdate(this.getPos(), blockState, blockState, 0);
         this.markDirty();
     }
 

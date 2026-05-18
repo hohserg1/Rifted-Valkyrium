@@ -134,8 +134,8 @@ public class TileEntityLiftLever extends TileEntityControlNodeImpl {
                 }
             }
 
-            IBlockState blockState = getWorld().getBlockState(getPos());
-            getWorld().notifyBlockUpdate(getPos(), blockState, blockState, 0);
+            IBlockState blockState = this.getWorld().getBlockState(getPos());
+            this.getWorld().notifyBlockUpdate(getPos(), blockState, blockState, 0);
         }
     }
 

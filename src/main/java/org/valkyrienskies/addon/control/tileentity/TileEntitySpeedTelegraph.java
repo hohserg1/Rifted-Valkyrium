@@ -128,7 +128,8 @@ public class TileEntitySpeedTelegraph extends TileEntityControlNodeImpl implemen
                     else masterTile.setOutputRatio(Optional.of(this.telegraphState.gearboxOutputRatio));
                 }
             }
-            VSNetwork.sendTileToAllNearby(this);
+            IBlockState blockState = this.getWorld().getBlockState(this.getPos());
+            this.getWorld().notifyBlockUpdate(this.getPos(), blockState, blockState, 0);
         }
     }
 

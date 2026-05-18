@@ -2,6 +2,7 @@ package org.valkyrienskies.addon.control.nodenetwork;
 
 import gigaherz.graph.api.Graph;
 import gigaherz.graph.api.GraphObject;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
@@ -169,7 +170,9 @@ public class VSNode_TileEntity implements IVSNode {
         if (!this.getNodeWorld().isRemote) {
             // System.out.println("help");
             if (!this.parentTile.isInvalid()) {
-                VSNetwork.sendTileToAllNearby(this.parentTile);
+                //VSNetwork.sendTileToAllNearby(this.parentTile);
+                IBlockState blockState = this.getNodeWorld().getBlockState(this.getNodePos());
+                this.getNodeWorld().notifyBlockUpdate(this.getNodePos(), blockState, blockState, 0);
             }
         }
     }

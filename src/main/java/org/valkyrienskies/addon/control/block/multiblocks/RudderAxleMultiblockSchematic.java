@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RudderAxleMultiblockSchematic implements IMultiblockSchematic {
-
     public static final int MIN_AXLE_LENGTH = 2;
     public static final int MAX_AXLE_LENGTH = 6;
     private final List<ImmutablePair<BlockPos, Block>> structureRelativeToCenter;
@@ -81,8 +80,8 @@ public class RudderAxleMultiblockSchematic implements IMultiblockSchematic {
                             schematicVariant.structureRelativeToCenter
                                 .add(new ImmutablePair<BlockPos, Block>(
                                     BlockPos.ORIGIN.offset(possibleAxleAxisDirection, i),
-                                    rudderAxleBlock)
-                                );
+                                    rudderAxleBlock
+                                ));
                         }
                         variants.add(schematicVariant);
                     }

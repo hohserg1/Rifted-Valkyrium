@@ -20,9 +20,7 @@ public abstract class MixinPlayerList {
      * @author thebest108
      */
     @Overwrite
-    public void sendToAllNearExcept(@Nullable EntityPlayer except, double x, double y, double z,
-        double radius, int dimension, Packet<?> packetIn) {
+    public void sendToAllNearExcept(@Nullable EntityPlayer except, double x, double y, double z, double radius, int dimension, Packet<?> packetIn) {
         VSNetwork.sendToAllNearExcept(except, x, y, z, radius, dimension, packetIn);
     }
-
 }

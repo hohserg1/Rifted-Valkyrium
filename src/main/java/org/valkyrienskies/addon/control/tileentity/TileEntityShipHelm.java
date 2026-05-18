@@ -54,22 +54,22 @@ public class TileEntityShipHelm extends TileEntityControlNodeImpl implements ITi
     @Override
     public void update() {
         if (this.getWorld().isRemote) {
-            calculateCompassAngle();
-            lastWheelRotation = wheelRotation;
-            wheelRotation += (nextWheelRotation - wheelRotation) * .25D;
+            this.calculateCompassAngle();
+            this.lastWheelRotation = this.wheelRotation;
+            this.wheelRotation += (this.nextWheelRotation - this.wheelRotation) * 0.25D;
         }
         else {
             // Only decay rotation when there's no pilot
             if (this.getUserEntity() == null) {
-                double friction = .05D;
-                double toOriginRate = .05D;
-                if (Math.abs(wheelRotation) < 1.5) {
-                    wheelRotation = 0;
-                } else {
+                double friction = 0.05D;
+                double toOriginRate = 0.05D;
+                if (Math.abs(this.wheelRotation) < 1.5) {
+                    this.wheelRotation = 0;
+                }
+                else {
                     // wheelRotation -= math.signum(wheelRotation) * wheelRotation;
-                    double deltaForce = Math
-                        .max(Math.abs(wheelRotation * toOriginRate) - friction, 0);
-                    wheelRotation += deltaForce * -1 * Math.signum(wheelRotation);
+                    double deltaForce = Math.max(Math.abs(this.wheelRotation * toOriginRate) - friction, 0);
+                    this.wheelRotation += deltaForce * -1 * Math.signum(this.wheelRotation);
                 }
             }
 
@@ -78,43 +78,41 @@ public class TileEntityShipHelm extends TileEntityControlNodeImpl implements ITi
             for (GraphObject object : thisNode.getGraph().getObjects()) {
                 VSNode_TileEntity otherNode = (VSNode_TileEntity) object;
                 TileEntity tile = otherNode.getParentTile();
-                if (tile instanceof TileEntityRudderPart) {
-                    BlockPos masterPos = ((TileEntityRudderPart) tile).getMultiblockOrigin();
-                    TileEntityRudderPart masterTile = (TileEntityRudderPart) tile.getWorld()
-                        .getTileEntity(masterPos);
+                if (tile instanceof TileEntityRudderPart tileRudderPart) {
+                    BlockPos masterPos = tileRudderPart.getMultiblockOrigin();
+                    TileEntityRudderPart masterTile = (TileEntityRudderPart) tile.getWorld().getTileEntity(masterPos);
                     // This is a transient problem that only occurs during world loading.
-                    if (masterTile != null) {
-                        masterTile.setRudderAngle(-this.wheelRotation / 8D);
-                    }
+                    if (masterTile != null) masterTile.setRudderAngle(-this.wheelRotation / 8D);
                 }
 
             }
 
-            VSNetwork.sendTileToAllNearby(this);
+            IBlockState blockState = this.getWorld().getBlockState(this.getPos());
+            this.getWorld().notifyBlockUpdate(this.getPos(), blockState, blockState, 0);
         }
     }
 
     @Override
     public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
-        nextWheelRotation = pkt.getNbtCompound().getDouble("wheelRotation");
+        this.nextWheelRotation = pkt.getNbtCompound().getDouble("wheelRotation");
     }
 
     @Override
     public SPacketUpdateTileEntity getUpdatePacket() {
         NBTTagCompound tagToSend = new NBTTagCompound();
-        tagToSend.setDouble("wheelRotation", wheelRotation);
+        tagToSend.setDouble("wheelRotation", this.wheelRotation);
         return new SPacketUpdateTileEntity(this.getPos(), 0, tagToSend);
     }
 
     @Override
     public NBTTagCompound getUpdateTag() {
         NBTTagCompound toReturn = super.getUpdateTag();
-        toReturn.setDouble("wheelRotation", wheelRotation);
+        toReturn.setDouble("wheelRotation", this.wheelRotation);
         return toReturn;
     }
 
     public void calculateCompassAngle() {
-        lastCompassAngle = compassAngle;
+        this.lastCompassAngle = this.compassAngle;
 
         IBlockState helmState = getWorld().getBlockState(getPos());
         if (helmState.getBlock() != ValkyrienSkiesControl.INSTANCE.vsControlBlocks.shipHelm) {
@@ -161,7 +159,7 @@ public class TileEntityShipHelm extends TileEntityControlNodeImpl implements ITi
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         NBTTagCompound toReturn = super.writeToNBT(compound);
-        compound.setDouble("wheelRotation", wheelRotation);
+        compound.setDouble("wheelRotation", this.wheelRotation);
         return toReturn;
     }
 

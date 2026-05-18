@@ -1,5 +1,6 @@
 package org.valkyrienskies.addon.control.block.multiblocks;
 
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
@@ -78,7 +79,8 @@ public class TileEntityValkyriumEnginePart extends TileEntityMultiblockPart<Valk
                         this.currentKeyframe = this.currentKeyframe % 99;
                     }
                 }
-                VSNetwork.sendTileToAllNearby(this);
+                IBlockState blockState = this.getWorld().getBlockState(this.getPos());
+                this.getWorld().notifyBlockUpdate(this.getPos(), blockState, blockState, 0);
             }
             this.markDirty();
         }

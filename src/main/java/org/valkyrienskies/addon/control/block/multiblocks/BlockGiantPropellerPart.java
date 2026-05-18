@@ -20,7 +20,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class BlockGiantPropellerPart extends BaseBlock implements ITileEntityProvider, IBlockForceProvider {
-
     public BlockGiantPropellerPart() {
         super("giant_propeller_part", Material.WOOD, 0.0F, true);
         this.setHardness(5.0F);

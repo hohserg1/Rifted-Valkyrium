@@ -1,5 +1,6 @@
 package org.valkyrienskies.addon.control.block.multiblocks;
 
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -44,15 +45,14 @@ public class TileEntityRudderPart extends TileEntityMultiblockPartForce<RudderAx
     }
 
     public Vector3d getForcePositionInShipSpace() {
-        Vector3d facingOffset = getForcePosRelativeToAxleInShipSpace();
-        if (facingOffset != null) {
-            return new Vector3d(
-                    facingOffset.x + pos.getX() + 0.5,
-                    facingOffset.y + pos.getY() + 0.5,
+        Vector3d facingOffset = this.getForcePosRelativeToAxleInShipSpace();
+        if (facingOffset == null) return null;
+
+        return new Vector3d(
+                facingOffset.x + pos.getX() + 0.5,
+                facingOffset.y + pos.getY() + 0.5,
                 facingOffset.z + pos.getZ() + 0.5
-            );
-        }
-        return null;
+        );
     }
 
     private Vector3d getForcePosRelativeToAxleInShipSpace() {
@@ -75,7 +75,7 @@ public class TileEntityRudderPart extends TileEntityMultiblockPartForce<RudderAx
     }
 
     public Vector3d calculateForceFromVelocity(PhysicsObject physicsObject) {
-        if (getRudderAxleSchematic().isPresent()) {
+        if (this.getRudderAxleSchematic().isPresent()) {
             Vector3d directionFacing = this.getForcePosRelativeToAxleInShipSpace();
             Vector3d forcePosRelativeToShipCenter = this.getForcePositionInShipSpace();
             forcePosRelativeToShipCenter.sub(physicsObject.getShipTransform().getCenterCoord());
@@ -168,7 +168,8 @@ public class TileEntityRudderPart extends TileEntityMultiblockPartForce<RudderAx
 
     public void setRudderAngle(double forcedValue) {
         this.rudderAngle = forcedValue;
-        VSNetwork.sendTileToAllNearby(this);
+        IBlockState blockState = this.getWorld().getBlockState(this.getPos());
+        this.getWorld().notifyBlockUpdate(this.getPos(), blockState, blockState, 0);
     }
 
     public double getRenderRudderAngle(double partialTicks) {

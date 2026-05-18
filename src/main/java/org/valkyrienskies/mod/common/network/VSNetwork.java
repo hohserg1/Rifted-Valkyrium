@@ -25,17 +25,7 @@ import java.util.Optional;
  * ships.
  */
 public class VSNetwork {
-    /**
-     * Don't use this! Use world.notifyBlockUpdate() instead!
-     */
-    @Deprecated
-    public static void sendTileToAllNearby(TileEntity tileEntity) {
-        PlayerChunkMap playerChunkMap = ((WorldServer) tileEntity.getWorld()).playerChunkMap;
-        playerChunkMap.markBlockForUpdate(tileEntity.getPos());
-    }
-
-    public static void sendToAllNearExcept(@Nullable EntityPlayer except, double x, double y,
-        double z, double radius, int dimension, Packet<?> packetIn) {
+    public static void sendToAllNearExcept(@Nullable EntityPlayer except, double x, double y, double z, double radius, int dimension, Packet<?> packetIn) {
         BlockPos pos = new BlockPos(x, y, z);
         World worldIn = except == null ? DimensionManager.getWorld(dimension) : except.world;
         Optional<PhysicsObject> physicsObject = ValkyrienUtils.getPhysoManagingBlock(worldIn, pos);
