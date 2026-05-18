@@ -13,10 +13,7 @@ import valkyrienwarfare.api.TransformType;
 import javax.annotation.Nonnull;
 import java.util.List;
 
-public class TileEntityValkyriumCompressorPart extends
-    TileEntityMultiblockPartForce<ValkyriumCompressorMultiblockSchematic, TileEntityValkyriumCompressorPart> implements
-    IValkyriumEngine {
-
+public class TileEntityValkyriumCompressorPart extends TileEntityMultiblockPartForce<ValkyriumCompressorMultiblockSchematic, TileEntityValkyriumCompressorPart> implements IValkyriumEngine {
     private static final Vector3dc FORCE_NORMAL = new Vector3d(0, 1, 0);
     private double prevKeyframe;
     private double currentKeyframe;
@@ -35,9 +32,9 @@ public class TileEntityValkyriumCompressorPart extends
     @Override
     public void update() {
         super.update();
-        prevKeyframe = currentKeyframe;
-        currentKeyframe += 1.2;
-        currentKeyframe = currentKeyframe % 99;
+        this.prevKeyframe = this.currentKeyframe;
+        this.currentKeyframe += 1.2;
+        this.currentKeyframe = this.currentKeyframe % 99;
     }
 
     @Override
@@ -50,29 +47,22 @@ public class TileEntityValkyriumCompressorPart extends
         // TODO: Something is fundamentally wrong here.
         if (this.isMaster() || this.getMaster() == this) {
             super.setThrustMultiplierGoal(thrustMultiplierGoal);
-        } else {
-            this.getMaster()
-                .setThrustMultiplierGoal(thrustMultiplierGoal);
         }
+        else this.getMaster().setThrustMultiplierGoal(thrustMultiplierGoal);
     }
 
     @Override
     public double getThrustMagnitude(PhysicsObject physicsObject) {
-        if (this.isPartOfAssembledMultiblock() && this
-            .getMaster() instanceof TileEntityValkyriumCompressorPart) {
-            return this.getMaxThrust() * this.getMaster()
-                .getThrustMultiplierGoal() * this.getCurrentValkyriumEfficiency(physicsObject);
-        } else {
-            return 0;
+        if (this.isPartOfAssembledMultiblock() && this.getMaster() != null) {
+            return this.getMaxThrust() * this.getMaster().getThrustMultiplierGoal() * this.getCurrentValkyriumEfficiency(physicsObject);
         }
+        return 0;
     }
 
     @Override
     public double getCurrentValkyriumEfficiency(@Nonnull PhysicsObject physicsObject) {
-        Vector3d tilePos = new Vector3d(getPos().getX() + .5D, getPos().getY() + .5D,
-            getPos().getZ() + .5D);
-        physicsObject
-            .getShipTransformationManager()
+        Vector3d tilePos = new Vector3d(this.getPos().getX() + 0.5D, this.getPos().getY() + 0.5D, this.getPos().getZ() + 0.5D);
+        physicsObject.getShipTransformationManager()
             .getCurrentPhysicsTransform()
             .transformPosition(tilePos, TransformType.SUBSPACE_TO_GLOBAL);
         double yPos = tilePos.y;
@@ -80,20 +70,18 @@ public class TileEntityValkyriumCompressorPart extends
     }
 
     public double getCurrentKeyframe(double partialTick) {
-        double increment = currentKeyframe - prevKeyframe;
-        if (increment < 0) {
-            increment = (increment % 99) + 99;
-        }
-        return prevKeyframe + (increment * partialTick) + 1;
+        double increment = this.currentKeyframe - this.prevKeyframe;
+        if (increment < 0) increment = (increment % 99) + 99;
+        return this.prevKeyframe + (increment * partialTick) + 1;
     }
 
     @Override
     public boolean attemptToAssembleMultiblock(World worldIn, BlockPos pos, EnumFacing facing) {
-        List<IMultiblockSchematic> valkyriumEngineMultiblockSchematics = MultiblockRegistry.getSchematicsWithPrefix("multiblock_valkyrium_compressor");
+        List<IMultiblockSchematic> valkyriumEngineMultiblockSchematics = MultiblockRegistry.getSchematicsWithPrefix(
+                "multiblock_valkyrium_compressor"
+        );
         for (IMultiblockSchematic schematic : valkyriumEngineMultiblockSchematics) {
-            if (schematic.attemptToCreateMultiblock(worldIn, pos)) {
-                return true;
-            }
+            if (schematic.attemptToCreateMultiblock(worldIn, pos)) return true;
         }
         return false;
     }

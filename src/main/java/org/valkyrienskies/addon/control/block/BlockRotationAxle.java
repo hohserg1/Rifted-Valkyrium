@@ -20,7 +20,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class BlockRotationAxle extends BlockRotatedPillar implements ITileEntityProvider {
-
     public BlockRotationAxle() {
         super("rotation_axle", Material.IRON, 0.0F, true);
         this.setHardness(6.0F);
@@ -38,9 +37,9 @@ public class BlockRotationAxle extends BlockRotatedPillar implements ITileEntity
     public boolean rotateBlock(World world, BlockPos pos, EnumFacing axisFacing) {
         boolean result = super.rotateBlock(world, pos, axisFacing);
         if (result) {
-            TileEntity tileEntityAxle = world.getTileEntity(pos);
-            if (tileEntityAxle instanceof TileEntityRotationAxle) {
-                ((TileEntityRotationAxle) tileEntityAxle).setAxleAxis(axisFacing.getAxis());
+            TileEntity tileEntity = world.getTileEntity(pos);
+            if (tileEntity instanceof TileEntityRotationAxle tileEntityAxle) {
+                tileEntityAxle.setAxleAxis(axisFacing.getAxis());
             }
         }
         return result;
@@ -79,15 +78,11 @@ public class BlockRotationAxle extends BlockRotatedPillar implements ITileEntity
 
     @Override
     public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
-        switch (state.getValue(AXIS)) {
-            case X:
-                return new AxisAlignedBB(0, .4, .4, 1, .6, .6);
-            case Y:
-                return new AxisAlignedBB(.4, 0, .4, .6, 1, .6);
-            case Z:
-                return new AxisAlignedBB(.4, .4, 0, .6, .6, 1);
-            default:
-                return FULL_BLOCK_AABB;
-        }
+        return switch (state.getValue(AXIS)) {
+            case X -> new AxisAlignedBB(0, .4, .4, 1, .6, .6);
+            case Y -> new AxisAlignedBB(.4, 0, .4, .6, 1, .6);
+            case Z -> new AxisAlignedBB(.4, .4, 0, .6, .6, 1);
+            default -> FULL_BLOCK_AABB;
+        };
     }
 }

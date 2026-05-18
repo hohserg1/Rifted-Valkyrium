@@ -19,8 +19,7 @@ import org.valkyrienskies.mod.common.ships.ship_world.PhysicsObject;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class BlockGiantPropellerPart extends BaseBlock implements ITileEntityProvider,
-    IBlockForceProvider {
+public class BlockGiantPropellerPart extends BaseBlock implements ITileEntityProvider, IBlockForceProvider {
 
     public BlockGiantPropellerPart() {
         super("giant_propeller_part", Material.WOOD, 0.0F, true);
@@ -37,27 +36,24 @@ public class BlockGiantPropellerPart extends BaseBlock implements ITileEntityPro
 
     @Nullable
     @Override
-    public Vector3dc getBlockForceInShipSpace(World world, BlockPos pos, IBlockState state,
-                                              PhysicsObject physicsObject, double secondsToApply) {
+    public Vector3dc getBlockForceInShipSpace(World world, BlockPos pos, IBlockState state, PhysicsObject physicsObject, double secondsToApply) {
         TileEntity tileEntity = world.getTileEntity(pos);
-        if (tileEntity instanceof TileEntityGiantPropellerPart) {
-            TileEntityGiantPropellerPart tileCompressorPart = (TileEntityGiantPropellerPart) tileEntity;
+        if (tileEntity instanceof TileEntityGiantPropellerPart tileCompressorPart) {
             return tileCompressorPart.getForceOutputUnoriented(secondsToApply, physicsObject);
         }
         return null;
     }
 
     @Override
-    public boolean shouldLocalForceBeRotated(World world, BlockPos pos, IBlockState state,
-        double secondsToApply) {
+    public boolean shouldLocalForceBeRotated(World world, BlockPos pos, IBlockState state, double secondsToApply) {
         return true;
     }
 
     @Override
     public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
         TileEntity tile = worldIn.getTileEntity(pos);
-        if (tile instanceof TileEntityGiantPropellerPart) {
-            ((TileEntityGiantPropellerPart) tile).disassembleMultiblock();
+        if (tile instanceof TileEntityGiantPropellerPart tileGiantPropellerPart) {
+            tileGiantPropellerPart.disassembleMultiblock();
         }
         super.breakBlock(worldIn, pos, state);
     }

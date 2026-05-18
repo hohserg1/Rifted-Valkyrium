@@ -17,7 +17,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class BlockValkyriumEnginePart extends BaseBlock implements ITileEntityProvider {
-
     public BlockValkyriumEnginePart() {
         super("valkyrium_engine_part", Material.IRON, 0.0F, true);
         this.setHardness(6.0F);
@@ -54,8 +53,8 @@ public class BlockValkyriumEnginePart extends BaseBlock implements ITileEntityPr
     @Override
     public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
         TileEntity tile = worldIn.getTileEntity(pos);
-        if (tile instanceof TileEntityValkyriumEnginePart) {
-            ((TileEntityValkyriumEnginePart) tile).disassembleMultiblock();
+        if (tile instanceof TileEntityValkyriumEnginePart tileValkyriumEnginePart) {
+            tileValkyriumEnginePart.disassembleMultiblock();
         }
         super.breakBlock(worldIn, pos, state);
     }

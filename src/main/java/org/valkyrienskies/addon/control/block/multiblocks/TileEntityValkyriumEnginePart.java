@@ -22,9 +22,7 @@ import org.valkyrienskies.mod.common.util.ValkyrienUtils;
 import java.util.List;
 import java.util.Optional;
 
-public class TileEntityValkyriumEnginePart extends
-    TileEntityMultiblockPart<ValkyriumEngineMultiblockSchematic, TileEntityValkyriumEnginePart> implements
-    IRotationNodeProvider<TileEntityValkyriumEnginePart> {
+public class TileEntityValkyriumEnginePart extends TileEntityMultiblockPart<ValkyriumEngineMultiblockSchematic, TileEntityValkyriumEnginePart> implements IRotationNodeProvider<TileEntityValkyriumEnginePart> {
 
     private static final int ROTATION_NODE_SORT_PRIORITY = 10000;
     @SuppressWarnings("WeakerAccess")
@@ -47,27 +45,22 @@ public class TileEntityValkyriumEnginePart extends
     public void update() {
         super.update();
         if (!this.getWorld().isRemote) {
-            if (firstUpdate) {
+            if (this.firstUpdate) {
                 this.rotationNode.markInitialized();
-                firstUpdate = false;
+                this.firstUpdate = false;
             }
 
             if (this.isPartOfAssembledMultiblock()) {
-                Optional<PhysicsObject> physicsObjectOptional = ValkyrienUtils
-                    .getPhysoManagingBlock(getWorld(), getPos());
+                Optional<PhysicsObject> physicsObjectOptional = ValkyrienUtils.getPhysoManagingBlock(this.getWorld(), this.getPos());
 
-                IRotationNodeWorld nodeWorld;
-                if (physicsObjectOptional.isPresent()) {
-                    nodeWorld = ValkyrienSkiesControlUtil
-                        .getRotationWorldFromShip(physicsObjectOptional.get());
-                } else {
-                    nodeWorld = ValkyrienSkiesControlUtil.getRotationWorldFromWorld(getWorld());
-                }
-                if (physicsObjectOptional.isPresent() && !rotationNode.hasBeenPlacedIntoNodeWorld()
-                    && this.getRelativePos()
-                    .equals(this.getMultiBlockSchematic().getTorqueOutputPos())) {
+                IRotationNodeWorld nodeWorld = physicsObjectOptional.map(ValkyrienSkiesControlUtil::getRotationWorldFromShip)
+                        .orElseGet(() -> ValkyrienSkiesControlUtil.getRotationWorldFromWorld(getWorld()));
+                if (physicsObjectOptional.isPresent() && !this.rotationNode.hasBeenPlacedIntoNodeWorld()
+                    && this.getRelativePos().equals(this.getMultiBlockSchematic().getTorqueOutputPos())
+                ) {
                     nodeWorld.enqueueTaskOntoWorld(
-                        () -> nodeWorld.setNodeFromPos(getPos(), rotationNode));
+                        () -> nodeWorld.setNodeFromPos(this.getPos(), this.rotationNode)
+                    );
                 }
 
                 BlockPos torqueOutputPos = this.getMultiBlockSchematic().getTorqueOutputPos()
@@ -81,54 +74,45 @@ public class TileEntityValkyriumEnginePart extends
                             ((TileEntityValkyriumEnginePart) tileEntity).getRotationNode().get()
                                 .getAngularVelocityUnsynchronized() / 20D;
                         // Thats about right, although the x1.3 multiplier tells me the world node math is wrong.
-                        currentKeyframe += radiansRotatedThisTick * 99D / (6D * Math.PI);
-                        currentKeyframe = currentKeyframe % 99;
+                        this.currentKeyframe += radiansRotatedThisTick * 99D / (6D * Math.PI);
+                        this.currentKeyframe = this.currentKeyframe % 99;
                     }
                 }
                 VSNetwork.sendTileToAllNearby(this);
             }
             this.markDirty();
-        } else {
+        }
+        else {
             // Client keyframe interpolating logic, use .85 to smoothly slide towards actual value
             // to appear more fluid when the server lags.
-            prevKeyframe = currentKeyframe;
-            currentKeyframe = VSMath
-                .interpolateModulatedNumbers(currentKeyframe, nextKeyframe, .85, 99);
+            this.prevKeyframe = this.currentKeyframe;
+            this.currentKeyframe = VSMath.interpolateModulatedNumbers(this.currentKeyframe, this.nextKeyframe, 0.85, 99);
         }
     }
 
     public double getCurrentKeyframe(double partialTick) {
-        return VSMath.interpolateModulatedNumbers(prevKeyframe, currentKeyframe, partialTick, 99);
+        return VSMath.interpolateModulatedNumbers(this.prevKeyframe, this.currentKeyframe, partialTick, 99);
     }
 
     @Override
-    public void assembleMultiblock(ValkyriumEngineMultiblockSchematic schematic,
-        BlockPos relativePos) {
+    public void assembleMultiblock(ValkyriumEngineMultiblockSchematic schematic, BlockPos relativePos) {
         super.assembleMultiblock(schematic, relativePos);
         if (relativePos.equals(schematic.getTorqueOutputPos())) {
-            Optional<PhysicsObject> objectOptional = ValkyrienUtils
-                .getPhysoManagingBlock(getWorld(), getPos());
-            IRotationNodeWorld nodeWorld;
-            if (objectOptional.isPresent()) {
-                nodeWorld = ValkyrienSkiesControlUtil
-                    .getRotationWorldFromShip(objectOptional.get());
-            } else {
-                nodeWorld = ValkyrienSkiesControlUtil.getRotationWorldFromWorld(getWorld());
-            }
-            EnumFacing facing = EnumFacing
-                .getFacingFromVector(schematic.getTorqueOutputDirection().getX(),
+            Optional<PhysicsObject> objectOptional = ValkyrienUtils.getPhysoManagingBlock(getWorld(), getPos());
+            IRotationNodeWorld nodeWorld = objectOptional.map(ValkyrienSkiesControlUtil::getRotationWorldFromShip)
+                    .orElseGet(() -> ValkyrienSkiesControlUtil.getRotationWorldFromWorld(getWorld()));
+            EnumFacing facing = EnumFacing.getFacingFromVector(
+                    schematic.getTorqueOutputDirection().getX(),
                     schematic.getTorqueOutputDirection().getY(),
-                    schematic.getTorqueOutputDirection().getZ());
-            assert getRotationNode()
-                .isPresent() : "How the heck did we try assembling the multiblock without a rotation node initialized!";
+                    schematic.getTorqueOutputDirection().getZ()
+            );
+            assert getRotationNode().isPresent() : "How the heck did we try assembling the multiblock without a rotation node initialized!";
 
             this.rotationNode.queueTask(() -> {
-                rotationNode.setAngularVelocityRatio(facing, Optional.of(-1D));
-                rotationNode
-                    .setCustomTorqueFunction(new ValkyriumEngineTorqueFunction(rotationNode));
+                this.rotationNode.setAngularVelocityRatio(facing, Optional.of(-1D));
+                this.rotationNode.setCustomTorqueFunction(new ValkyriumEngineTorqueFunction(this.rotationNode));
             });
-            nodeWorld
-                .enqueueTaskOntoWorld(() -> nodeWorld.setNodeFromPos(pos, this.rotationNode));
+            nodeWorld.enqueueTaskOntoWorld(() -> nodeWorld.setNodeFromPos(this.pos, this.rotationNode));
         }
     }
 
@@ -136,9 +120,7 @@ public class TileEntityValkyriumEnginePart extends
     public boolean attemptToAssembleMultiblock(World worldIn, BlockPos pos, EnumFacing facing) {
         List<IMultiblockSchematic> schematics = MultiblockRegistry.getSchematicsWithPrefix("multiblock_valkyrium_engine");
         for (IMultiblockSchematic schematic : schematics) {
-            if (schematic.attemptToCreateMultiblock(worldIn, pos)) {
-                return true;
-            }
+            if (schematic.attemptToCreateMultiblock(worldIn, pos)) return true;
         }
         return false;
     }
@@ -147,26 +129,21 @@ public class TileEntityValkyriumEnginePart extends
     public void disassembleMultiblockLocal() {
         super.disassembleMultiblockLocal();
         Optional<PhysicsObject> object = ValkyrienUtils.getPhysoManagingBlock(getWorld(), getPos());
-        if (object.isPresent()) {
-            this.rotationNode.queueTask(rotationNode::resetNodeData);
-        }
+        if (object.isPresent()) this.rotationNode.queueTask(this.rotationNode::resetNodeData);
     }
 
     // The following methods are basically just here because interfaces can't have fields.
     @Override
     public Optional<IRotationNode> getRotationNode() {
-        if (rotationNode.isInitialized()) {
-            return Optional.of(rotationNode);
-        } else {
-            return Optional.empty();
-        }
+        if (this.rotationNode.isInitialized()) return Optional.of(this.rotationNode);
+        return Optional.empty();
     }
 
     @Override
     public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);
         if (this.getWorld() == null || !this.getWorld().isRemote) {
-            rotationNode.readFromNBT(compound);
+            this.rotationNode.readFromNBT(compound);
         }
 //        rotationNode.markInitialized();
     }
@@ -174,20 +151,20 @@ public class TileEntityValkyriumEnginePart extends
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         super.writeToNBT(compound);
-        rotationNode.writeToNBT(compound);
+        this.rotationNode.writeToNBT(compound);
         return compound;
     }
 
     @Override
     public SPacketUpdateTileEntity getUpdatePacket() {
         NBTTagCompound tagToSend = super.getUpdateTag();
-        tagToSend.setDouble("currentKeyframe", currentKeyframe);
+        tagToSend.setDouble("currentKeyframe", this.currentKeyframe);
         return new SPacketUpdateTileEntity(this.getPos(), 0, tagToSend);
     }
 
     @Override
     public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
         super.onDataPacket(net, pkt);
-        nextKeyframe = pkt.getNbtCompound().getDouble("currentKeyframe");
+        this.nextKeyframe = pkt.getNbtCompound().getDouble("currentKeyframe");
     }
 }

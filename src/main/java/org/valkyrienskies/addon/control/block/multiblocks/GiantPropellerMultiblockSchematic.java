@@ -6,6 +6,7 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.valkyrienskies.addon.control.MultiblockRegistry;
 import org.valkyrienskies.addon.control.ValkyrienSkiesControl;
 
@@ -13,14 +14,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GiantPropellerMultiblockSchematic implements IMultiblockSchematic {
-
-    private final List<BlockPosBlockPair> structureRelativeToCenter;
+    private final List<ImmutablePair<BlockPos, Block>> structureRelativeToCenter;
     private String schematicID;
     private int propellerRadius;
     private EnumFacing propellerFacing;
 
     public GiantPropellerMultiblockSchematic() {
-        this.structureRelativeToCenter = new ArrayList<BlockPosBlockPair>();
+        this.structureRelativeToCenter = new ArrayList<ImmutablePair<BlockPos, Block>>();
         this.schematicID = MultiblockRegistry.EMPTY_SCHEMATIC_ID;
         this.propellerFacing = EnumFacing.NORTH;
     }
@@ -30,37 +30,37 @@ public class GiantPropellerMultiblockSchematic implements IMultiblockSchematic {
         Block enginePart = ValkyrienSkiesControl.INSTANCE.vsControlBlocks.giantPropellerPart;
 
         Vec3i perpAxisOne = null;
-        Vec3i perpAxisTwo = null;
-        switch (propellerFacing.getAxis()) {
-            case X:
+        Vec3i perpAxisTwo = switch (propellerFacing.getAxis()) {
+            case X -> {
                 perpAxisOne = new Vec3i(0, 1, 0);
-                perpAxisTwo = new Vec3i(0, 0, 1);
-                break;
-            case Y:
+                yield new Vec3i(0, 0, 1);
+            }
+            case Y -> {
                 perpAxisOne = new Vec3i(1, 0, 0);
-                perpAxisTwo = new Vec3i(0, 0, 1);
-                break;
-            case Z:
+                yield new Vec3i(0, 0, 1);
+            }
+            case Z -> {
                 perpAxisOne = new Vec3i(1, 0, 0);
-                perpAxisTwo = new Vec3i(0, 1, 0);
-                break;
-        }
+                yield new Vec3i(0, 1, 0);
+            }
+        };
 
-        for (int x = -propellerRadius; x <= propellerRadius; x++) {
-            for (int y = -propellerRadius; y <= propellerRadius; y++) {
+        for (int x = -this.propellerRadius; x <= this.propellerRadius; x++) {
+            for (int y = -this.propellerRadius; y <= this.propellerRadius; y++) {
                 int relativeX = (perpAxisOne.getX() * x) + (perpAxisTwo.getX() * y);
                 int relativeY = (perpAxisOne.getY() * x) + (perpAxisTwo.getY() * y);
                 int relativeZ = (perpAxisOne.getZ() * x) + (perpAxisTwo.getZ() * y);
-                structureRelativeToCenter.add(
-                    new BlockPosBlockPair(new BlockPos(relativeX, relativeY, relativeZ),
-                        enginePart));
+                this.structureRelativeToCenter.add(new ImmutablePair<BlockPos, Block>(
+                        new BlockPos(relativeX, relativeY, relativeZ),
+                        enginePart
+                ));
             }
         }
         this.schematicID = schematicID;
     }
 
     @Override
-    public List<BlockPosBlockPair> getStructureRelativeToCenter() {
+    public List<ImmutablePair<BlockPos, Block>> getStructureRelativeToCenter() {
         return structureRelativeToCenter;
     }
 
@@ -76,11 +76,9 @@ public class GiantPropellerMultiblockSchematic implements IMultiblockSchematic {
 
     @Override
     public void applyMultiblockCreation(World world, BlockPos tilePos, BlockPos relativePos) {
-        TileEntity tileEntity = world.getTileEntity(tilePos);
-        if (!(tileEntity instanceof TileEntityGiantPropellerPart)) {
+        if (!(world.getTileEntity(tilePos) instanceof TileEntityGiantPropellerPart enginePart)) {
             throw new IllegalStateException();
         }
-        TileEntityGiantPropellerPart enginePart = (TileEntityGiantPropellerPart) tileEntity;
         enginePart.assembleMultiblock(this, relativePos);
     }
 
@@ -95,8 +93,8 @@ public class GiantPropellerMultiblockSchematic implements IMultiblockSchematic {
                 variant.propellerRadius = radius;
                 variant.propellerFacing = variantPropellerFacing;
                 variant.initializeMultiblockSchematic(
-                    getSchematicPrefix() + ":facing:" + variantPropellerFacing.toString()
-                        + ":radius:" + radius);
+                    getSchematicPrefix() + ":facing:" + variantPropellerFacing.toString() + ":radius:" + radius
+                );
 
                 variants.add(variant);
             }

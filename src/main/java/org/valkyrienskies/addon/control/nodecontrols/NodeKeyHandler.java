@@ -1,4 +1,4 @@
-package org.valkyrienskies.addon.control.nodeControls;
+package org.valkyrienskies.addon.control.nodecontrols;
 
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.math.BlockPos;

@@ -21,15 +21,11 @@ public class BlockPhysicsInfuserDummy extends BlockVSDirectional {
     }
 
     @Override
-    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state,
-        EntityPlayer playerIn,
-        EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ) {
+    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ) {
         if (!worldIn.isRemote) {
             BlockPos parentPos = getParentPos(state, pos);
             IBlockState belowState = worldIn.getBlockState(parentPos);
-            belowState.getBlock()
-                .onBlockActivated(worldIn, parentPos, belowState, playerIn, hand, side, hitX, hitY,
-                    hitZ);
+            belowState.getBlock().onBlockActivated(worldIn, parentPos, belowState, playerIn, hand, side, hitX, hitY, hitZ);
         }
         return true;
     }
@@ -64,8 +60,7 @@ public class BlockPhysicsInfuserDummy extends BlockVSDirectional {
     }
 
     @Override
-    public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world,
-        BlockPos pos, EntityPlayer player) {
+    public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos, EntityPlayer player) {
         BlockPos parentPos = getParentPos(state, pos);
         return ValkyrienSkiesControl.INSTANCE.vsControlBlocks.physicsInfuser
             .getPickBlock(world.getBlockState(parentPos), target, world, parentPos, player);

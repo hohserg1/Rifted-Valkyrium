@@ -13,7 +13,6 @@ import org.valkyrienskies.mod.common.config.VSConfigTemplate;
 @SuppressWarnings("WeakerAccess") // NOTE: Any forge config option MUST be "public"
 @Config(modid = ValkyrienSkiesControl.MOD_ID)
 public class VSControlConfig extends VSConfigTemplate {
-
     @Config.Name("Disable Wrench Modes")
     @Config.Comment("Makes wrench toggle a multiblock’s constructed state, removes modes.")
     public static boolean wrenchModeless = false;

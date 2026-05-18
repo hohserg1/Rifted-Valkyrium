@@ -5,6 +5,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.valkyrienskies.addon.control.MultiblockRegistry;
 import org.valkyrienskies.addon.control.ValkyrienSkiesControl;
 
@@ -15,14 +16,14 @@ public class RudderAxleMultiblockSchematic implements IMultiblockSchematic {
 
     public static final int MIN_AXLE_LENGTH = 2;
     public static final int MAX_AXLE_LENGTH = 6;
-    private final List<BlockPosBlockPair> structureRelativeToCenter;
+    private final List<ImmutablePair<BlockPos, Block>> structureRelativeToCenter;
     private String schematicID;
     private int axleLength;
     private EnumFacing axleAxis;
     private EnumFacing axleFacing;
 
     public RudderAxleMultiblockSchematic() {
-        this.structureRelativeToCenter = new ArrayList<BlockPosBlockPair>();
+        this.structureRelativeToCenter = new ArrayList<>();
         this.schematicID = MultiblockRegistry.EMPTY_SCHEMATIC_ID;
         this.axleLength = -1;
         this.axleAxis = EnumFacing.UP;
@@ -35,8 +36,8 @@ public class RudderAxleMultiblockSchematic implements IMultiblockSchematic {
     }
 
     @Override
-    public List<BlockPosBlockPair> getStructureRelativeToCenter() {
-        return structureRelativeToCenter;
+    public List<ImmutablePair<BlockPos, Block>> getStructureRelativeToCenter() {
+        return this.structureRelativeToCenter;
     }
 
     @Override
@@ -46,17 +47,16 @@ public class RudderAxleMultiblockSchematic implements IMultiblockSchematic {
 
     @Override
     public String getSchematicID() {
-        return schematicID;
+        return this.schematicID;
     }
 
     @Override
     public void applyMultiblockCreation(World world, BlockPos tilePos, BlockPos relativePos) {
         TileEntity tileEntity = world.getTileEntity(tilePos);
-        if (!(tileEntity instanceof TileEntityRudderPart)) {
+        if (!(tileEntity instanceof TileEntityRudderPart tileRudderPart)) {
             throw new IllegalStateException();
         }
-        TileEntityRudderPart enginePart = (TileEntityRudderPart) tileEntity;
-        enginePart.assembleMultiblock(this, relativePos);
+        tileRudderPart.assembleMultiblock(this, relativePos);
     }
 
     @Override
@@ -67,22 +67,22 @@ public class RudderAxleMultiblockSchematic implements IMultiblockSchematic {
         for (int length = MAX_AXLE_LENGTH; length >= MIN_AXLE_LENGTH; length--) {
             for (EnumFacing possibleAxleAxisDirection : EnumFacing.VALUES) {
                 for (EnumFacing possibleAxleFacingDirection : EnumFacing.VALUES) {
-                    if (possibleAxleAxisDirection.getAxis() != possibleAxleFacingDirection
-                        .getAxis()) {
-                        BlockPos originPos = new BlockPos(0, 0, 0);
+                    if (possibleAxleAxisDirection.getAxis() != possibleAxleFacingDirection.getAxis()) {
                         RudderAxleMultiblockSchematic schematicVariant = new RudderAxleMultiblockSchematic();
                         schematicVariant.initializeMultiblockSchematic(
                             getSchematicPrefix() + "axle_axis_direction:"
                                 + possibleAxleAxisDirection.toString() + ":axle_facing:"
-                                + possibleAxleFacingDirection.toString() + ":length:" + length);
+                                + possibleAxleFacingDirection.toString() + ":length:" + length
+                        );
                         schematicVariant.axleAxis = possibleAxleAxisDirection;
                         schematicVariant.axleFacing = possibleAxleFacingDirection;
                         schematicVariant.axleLength = length;
                         for (int i = 0; i < length; i++) {
                             schematicVariant.structureRelativeToCenter
-                                .add(new BlockPosBlockPair(
+                                .add(new ImmutablePair<BlockPos, Block>(
                                     BlockPos.ORIGIN.offset(possibleAxleAxisDirection, i),
-                                    rudderAxleBlock));
+                                    rudderAxleBlock)
+                                );
                         }
                         variants.add(schematicVariant);
                     }
@@ -93,15 +93,15 @@ public class RudderAxleMultiblockSchematic implements IMultiblockSchematic {
     }
 
     public int getAxleLength() {
-        return axleLength;
+        return this.axleLength;
     }
 
     public EnumFacing getAxleAxisDirection() {
-        return axleAxis;
+        return this.axleAxis;
     }
 
     public EnumFacing getAxleFacingDirection() {
-        return axleFacing;
+        return this.axleFacing;
     }
 
 }

@@ -7,7 +7,6 @@ import org.valkyrienskies.mod.common.ships.ship_world.PhysicsObject;
 import org.valkyrienskies.mod.common.util.ValkyrienNBTUtils;
 
 public abstract class BasicForceNodeTileEntity extends BasicNodeTileEntity implements IForceTile {
-
     protected double maxThrust;
     protected double currentThrust;
     private double thrusGoalMultiplier;
@@ -47,7 +46,7 @@ public abstract class BasicForceNodeTileEntity extends BasicNodeTileEntity imple
 
     @Override
     public Vector3dc getForceOutputNormal(double secondsToApply, PhysicsObject object) {
-        return normalVelocityUnoriented;
+        return this.normalVelocityUnoriented;
     }
 
     @Override
@@ -66,21 +65,20 @@ public abstract class BasicForceNodeTileEntity extends BasicNodeTileEntity imple
 
     @Override
     public double getThrustMultiplierGoal() {
-        return thrusGoalMultiplier;
+        return this.thrusGoalMultiplier;
     }
 
     @Override
     public void setThrustMultiplierGoal(double multiplier) {
-        thrusGoalMultiplier = multiplier;
+        this.thrusGoalMultiplier = multiplier;
     }
 
     @Override
     public void readFromNBT(NBTTagCompound compound) {
-        maxThrust = compound.getDouble("maxThrust");
-        currentThrust = compound.getDouble("currentThrust");
-        normalVelocityUnoriented = ValkyrienNBTUtils
-            .readVectorFromNBT("normalVelocityUnoriented", compound);
-        ticksSinceLastControlSignal = compound.getInteger("ticksSinceLastControlSignal");
+        this.maxThrust = compound.getDouble("maxThrust");
+        this.currentThrust = compound.getDouble("currentThrust");
+        this.normalVelocityUnoriented = ValkyrienNBTUtils.readVectorFromNBT("normalVelocityUnoriented", compound);
+        this.ticksSinceLastControlSignal = compound.getInteger("ticksSinceLastControlSignal");
         super.readFromNBT(compound);
     }
 
@@ -89,8 +87,8 @@ public abstract class BasicForceNodeTileEntity extends BasicNodeTileEntity imple
         compound.setDouble("maxThrust", maxThrust);
         compound.setDouble("currentThrust", currentThrust);
         ValkyrienNBTUtils
-            .writeVectorToNBT("normalVelocityUnoriented", normalVelocityUnoriented, compound);
-        compound.setInteger("ticksSinceLastControlSignal", ticksSinceLastControlSignal);
+            .writeVectorToNBT("normalVelocityUnoriented", this.normalVelocityUnoriented, compound);
+        compound.setInteger("ticksSinceLastControlSignal", this.ticksSinceLastControlSignal);
         return super.writeToNBT(compound);
     }
 
@@ -102,16 +100,15 @@ public abstract class BasicForceNodeTileEntity extends BasicNodeTileEntity imple
     }
 
     public void updateTicksSinceLastRecievedSignal() {
-        ticksSinceLastControlSignal = 0;
+        this.ticksSinceLastControlSignal = 0;
     }
 
     @Override
     public void update() {
         super.update();
-        ticksSinceLastControlSignal++;
-        if (ticksSinceLastControlSignal > 5 && getThrustMultiplierGoal() != 0) {
+        this.ticksSinceLastControlSignal++;
+        if (this.ticksSinceLastControlSignal > 5 && getThrustMultiplierGoal() != 0) {
             setThrustMultiplierGoal(this.getThrustMultiplierGoal() * .9D);
         }
     }
-
 }

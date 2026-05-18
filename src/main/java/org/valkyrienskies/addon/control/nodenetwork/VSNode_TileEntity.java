@@ -28,8 +28,10 @@ public class VSNode_TileEntity implements IVSNode {
         this.immutableLinkedNodesAndWireTypes = Collections.unmodifiableMap(this.linkedNodesAndWireTypes);
         this.isValid = false;
         this.maximumConnections = maximumConnections;
-        Graph.integrate(this, Collections.EMPTY_LIST,
-            (graph) -> new BasicNodeTileEntity.GraphData());
+        Graph.integrate(
+                this, Collections.EMPTY_LIST,
+                (graph) -> new BasicNodeTileEntity.GraphData()
+        );
     }
 
     @Nullable

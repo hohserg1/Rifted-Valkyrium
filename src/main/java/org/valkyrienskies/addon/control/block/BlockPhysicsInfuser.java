@@ -34,7 +34,6 @@ import java.util.List;
 
 @ParametersAreNonnullByDefault
 public class BlockPhysicsInfuser extends BlockVSDirectional implements ITileEntityProvider {
-
     public static final PropertyBool INFUSER_LIGHT_ON = PropertyBool.create("infuser_light_on");
     private final BlockFinder.BlockFinderType blockFinderType;
 
@@ -69,49 +68,44 @@ public class BlockPhysicsInfuser extends BlockVSDirectional implements ITileEnti
 
     @Override
     public int getMetaFromState(IBlockState state) {
-        int stateMeta = state.getValue(FACING)
-            .getIndex();
-        if (state.getValue(INFUSER_LIGHT_ON)) {
-            stateMeta |= 8;
-        }
+        int stateMeta = state.getValue(FACING).getIndex();
+        if (state.getValue(INFUSER_LIGHT_ON)) stateMeta |= 8;
         return stateMeta;
     }
 
     @Override
-    public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state,
-        EntityLivingBase placer, ItemStack stack) {
+    public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
         super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
-        if (!worldIn.isRemote) {
-            BlockPos dummyPos = getDummyStatePos(state, pos);
-            worldIn.setBlockState(dummyPos,
-                    ValkyrienSkiesControl.INSTANCE.vsControlBlocks.physicsInfuserDummy.getDefaultState()
-                    .withProperty(FACING, getDummyStateFacing(state)));
-        }
+        if (worldIn.isRemote) return;
+        BlockPos dummyPos = getDummyStatePos(state, pos);
+        worldIn.setBlockState(
+                dummyPos,
+                ValkyrienSkiesControl.INSTANCE.vsControlBlocks.physicsInfuserDummy.getDefaultState()
+                        .withProperty(FACING, getDummyStateFacing(state))
+        );
     }
 
     @Override
     public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
-        TileEntityPhysicsInfuser tileEntity = (TileEntityPhysicsInfuser) worldIn.getTileEntity(pos);
+        TileEntity tileEntity = worldIn.getTileEntity(pos);
+        if (!(tileEntity instanceof TileEntityPhysicsInfuser tilePhysicsInfuser)) return;
         // If there's a valid TileEntity, try dropping the contents of it's inventory.
-        if (tileEntity != null && !tileEntity.isInvalid()) {
-            IItemHandler handler = tileEntity
-                .getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
+        if (!tilePhysicsInfuser.isInvalid()) {
+            IItemHandler handler = tilePhysicsInfuser.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
             // Safety in case the capabilities system breaks. If we can't find the handler then
             // there isn't anything to drop anyways.
             if (handler != null) {
                 // Drop all the items
                 for (int slot = 0; slot < handler.getSlots(); slot++) {
                     ItemStack stack = handler.getStackInSlot(slot);
-                    InventoryHelper
-                        .spawnItemStack(worldIn, pos.getX(), pos.getY(), pos.getZ(), stack);
+                    InventoryHelper.spawnItemStack(worldIn, pos.getX(), pos.getY(), pos.getZ(), stack);
                 }
             }
         }
         // Remove the dummy block of this physics infuser, if there is one.
         BlockPos dummyBlockPos = getDummyStatePos(state, pos);
         super.breakBlock(worldIn, pos, state);
-        if (worldIn.getBlockState(dummyBlockPos)
-            .getBlock() == ValkyrienSkiesControl.INSTANCE.vsControlBlocks.physicsInfuserDummy) {
+        if (worldIn.getBlockState(dummyBlockPos).getBlock() == ValkyrienSkiesControl.INSTANCE.vsControlBlocks.physicsInfuserDummy) {
             worldIn.setBlockToAir(dummyBlockPos);
         }
         // Finally, delete the tile entity.
@@ -119,8 +113,7 @@ public class BlockPhysicsInfuser extends BlockVSDirectional implements ITileEnti
     }
 
     @Override
-    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip,
-        ITooltipFlag flagIn) {
+    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
         tooltip.add(TextFormatting.BLUE + I18n.format("tooltip.vs_control.physics_infuser"));
     }
 
@@ -129,24 +122,24 @@ public class BlockPhysicsInfuser extends BlockVSDirectional implements ITileEnti
     public IBlockState getStateForPlacement(World worldIn, BlockPos pos, EnumFacing facing,
         float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, EnumHand hand) {
         EnumFacing playerFacing = placer.getHorizontalFacing();
-        if (!placer.isSneaking()) {
-            playerFacing = playerFacing.getOpposite();
-        }
+        if (!placer.isSneaking()) playerFacing = playerFacing.getOpposite();
 
         // Find the facing that's closest to what the player wanted.
         EnumFacing facingHorizontal;
         if (canPlaceBlockAtWithFacing(worldIn, pos, playerFacing)) {
             facingHorizontal = playerFacing;
-        } else if (canPlaceBlockAtWithFacing(worldIn, pos, playerFacing.rotateY())) {
-            facingHorizontal = playerFacing.rotateY();
-        } else if (canPlaceBlockAtWithFacing(worldIn, pos, playerFacing.rotateYCCW())) {
-            facingHorizontal = playerFacing.rotateYCCW();
-        } else if (canPlaceBlockAtWithFacing(worldIn, pos, playerFacing.getOpposite())) {
-            facingHorizontal = playerFacing.getOpposite();
-        } else {
-            // There was no valid facing! How the did this method even get called!
-            throw new IllegalStateException("Cannot find valid state for placement for Physics Infuser!");
         }
+        else if (canPlaceBlockAtWithFacing(worldIn, pos, playerFacing.rotateY())) {
+            facingHorizontal = playerFacing.rotateY();
+        }
+        else if (canPlaceBlockAtWithFacing(worldIn, pos, playerFacing.rotateYCCW())) {
+            facingHorizontal = playerFacing.rotateYCCW();
+        }
+        else if (canPlaceBlockAtWithFacing(worldIn, pos, playerFacing.getOpposite())) {
+            facingHorizontal = playerFacing.getOpposite();
+        }
+        // There was no valid facing! How the did this method even get called!
+        else throw new IllegalStateException("Cannot find valid state for placement for Physics Infuser!");
 
         return this.getDefaultState()
             .withProperty(FACING, facingHorizontal)
@@ -158,9 +151,10 @@ public class BlockPhysicsInfuser extends BlockVSDirectional implements ITileEnti
         EntityPlayer playerIn,
         EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ) {
         if (!worldIn.isRemote) {
-            playerIn
-                .openGui(ValkyrienSkiesControl.INSTANCE, VS_Gui_Enum.PHYSICS_INFUSER.ordinal(), worldIn,
-                    pos.getX(), pos.getY(), pos.getZ());
+            playerIn.openGui(
+                    ValkyrienSkiesControl.INSTANCE, VS_Gui_Enum.PHYSICS_INFUSER.ordinal(), worldIn,
+                    pos.getX(), pos.getY(), pos.getZ()
+            );
         }
         return true;
     }

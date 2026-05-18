@@ -22,15 +22,10 @@ public class BlockDummyTelegraph extends BaseBlock {
     }
 
     @Override
-    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state,
-        EntityPlayer playerIn,
-        EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ) {
-        if (!worldIn.isRemote) {
-            IBlockState belowState = worldIn.getBlockState(pos.down());
-            belowState.getBlock()
-                .onBlockActivated(worldIn, pos.down(), belowState, playerIn, hand, side, hitX, hitY,
-                    hitZ);
-        }
+    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ) {
+        if (worldIn.isRemote) return true;
+        IBlockState belowState = worldIn.getBlockState(pos.down());
+        belowState.getBlock().onBlockActivated(worldIn, pos.down(), belowState, playerIn, hand, side, hitX, hitY, hitZ);
         return true;
     }
 
@@ -64,9 +59,8 @@ public class BlockDummyTelegraph extends BaseBlock {
     }
 
     @Override
-    public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world,
-        BlockPos pos, EntityPlayer player) {
+    public ItemStack getPickBlock(IBlockState state, RayTraceResult target, World world, BlockPos pos, EntityPlayer player) {
         return ValkyrienSkiesControl.INSTANCE.vsControlBlocks.speedTelegraph
-            .getPickBlock(world.getBlockState(pos.down()), target, world, pos.down(), player);
+                .getPickBlock(world.getBlockState(pos.down()), target, world, pos.down(), player);
     }
 }

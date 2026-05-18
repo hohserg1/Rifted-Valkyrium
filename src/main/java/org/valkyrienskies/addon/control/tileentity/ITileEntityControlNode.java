@@ -7,7 +7,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.valkyrienskies.addon.control.network.VSNodeControlMessage;
-import org.valkyrienskies.addon.control.nodeControls.NodeControl;
+import org.valkyrienskies.addon.control.nodecontrols.NodeControl;
 import org.valkyrienskies.mod.common.ships.ship_world.PhysicsObject;
 
 /**

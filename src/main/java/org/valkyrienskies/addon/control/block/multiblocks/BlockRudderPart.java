@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class BlockRudderPart extends BaseBlock implements ITileEntityProvider, IBlockForceProvider {
-
     public BlockRudderPart() {
         super("rudder_part", Material.WOOD, 0.0F, true);
         this.setHardness(5.0F);
@@ -63,48 +62,33 @@ public class BlockRudderPart extends BaseBlock implements ITileEntityProvider, I
     @Override
     public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
         TileEntity tile = worldIn.getTileEntity(pos);
-        if (tile instanceof TileEntityRudderPart) {
-            ((TileEntityRudderPart) tile).disassembleMultiblock();
+        if (tile instanceof TileEntityRudderPart tileRudderPart) {
+            tileRudderPart.disassembleMultiblock();
         }
         super.breakBlock(worldIn, pos, state);
     }
 
     @Override
-    public Vector3dc getBlockForceInShipSpace(World world, BlockPos pos, IBlockState state,
-        PhysicsObject physicsObject,
-        double secondsToApply) {
-        if (world.getTileEntity(pos) instanceof TileEntityRudderPart) {
-            TileEntityRudderPart tileEntity = (TileEntityRudderPart) world
-                .getTileEntity(pos);
-            Vector3d forceBeforeTimeScale = tileEntity.calculateForceFromVelocity(physicsObject);
-            if (forceBeforeTimeScale != null && forceBeforeTimeScale.lengthSquared() > 1) {
-                // System.out.println(forceBeforeTimeScale.toRoundedString());
-                return forceBeforeTimeScale.mul(secondsToApply);
-            } else {
-                return null;
-            }
-        } else {
-            return null;
+    public Vector3dc getBlockForceInShipSpace(World world, BlockPos pos, IBlockState state, PhysicsObject physicsObject, double secondsToApply) {
+        TileEntity tile = world.getTileEntity(pos);
+        if (!(tile instanceof TileEntityRudderPart tileRudderPart)) return null;
+
+        Vector3d forceBeforeTimeScale = tileRudderPart.calculateForceFromVelocity(physicsObject);
+        if (forceBeforeTimeScale != null && forceBeforeTimeScale.lengthSquared() > 1) {
+            return forceBeforeTimeScale.mul(secondsToApply);
         }
+        return null;
     }
 
     @Override
-    public Vector3dc getCustomBlockForcePosition(World world, BlockPos pos, IBlockState state,
-                                                 PhysicsObject physicsObject,
-                                                 double secondsToApply) {
-        if (world.getTileEntity(pos) instanceof TileEntityRudderPart) {
-            TileEntityRudderPart tileEntity = (TileEntityRudderPart) world
-                .getTileEntity(pos);
-            return tileEntity.getForcePositionInShipSpace();
-        } else {
-            return null;
-        }
+    public Vector3dc getCustomBlockForcePosition(World world, BlockPos pos, IBlockState state, PhysicsObject physicsObject, double secondsToApply) {
+        TileEntity tile = world.getTileEntity(pos);
+        if (!(tile instanceof TileEntityRudderPart tileRudderPart)) return null;
+        return tileRudderPart.getForcePositionInShipSpace();
     }
 
     @Override
-    public boolean shouldLocalForceBeRotated(World world, BlockPos pos, IBlockState state,
-        double secondsToApply) {
+    public boolean shouldLocalForceBeRotated(World world, BlockPos pos, IBlockState state, double secondsToApply) {
         return true;
     }
-
 }

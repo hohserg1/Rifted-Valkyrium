@@ -28,21 +28,15 @@ public class BlockGyroscopeDampener extends BaseBlock implements ITileEntityProv
     }
 
     @Override
-    public void addInformation(ItemStack stack, @Nullable World player,
-        List<String> itemInformation,
-        ITooltipFlag advanced) {
-        itemInformation
-            .add(TextFormatting.BLUE + I18n.format("tooltip.vs_control.gyroscope_dampener"));
+    public void addInformation(ItemStack stack, @Nullable World player, List<String> itemInformation, ITooltipFlag advanced) {
+        itemInformation.add(TextFormatting.BLUE + I18n.format("tooltip.vs_control.gyroscope_dampener"));
     }
 
     @Override
     public Vector3dc getTorqueInGlobal(PhysicsCalculations physicsCalculations, BlockPos pos) {
         TileEntity thisTile = ValkyrienUtils.getTileEntitySafe(physicsCalculations.getParent().getWorld(), pos);
-        if (thisTile instanceof TileEntityGyroscopeDampener) {
-            TileEntityGyroscopeDampener tileGyroscope = (TileEntityGyroscopeDampener) thisTile;
-            return tileGyroscope.getTorqueInGlobal(physicsCalculations, pos);
-        }
-        return null;
+        if (!(thisTile instanceof TileEntityGyroscopeDampener tileGyroscope)) return null;
+        return tileGyroscope.getTorqueInGlobal(physicsCalculations, pos);
     }
 
     @Override
@@ -50,10 +44,10 @@ public class BlockGyroscopeDampener extends BaseBlock implements ITileEntityProv
         return new TileEntityGyroscopeDampener();
     }
 
+    // Since we're damping angular velocity, we want this to run at the very end, so
+    // we give it a large sorting value to put it at the end.
     @Override
     public int getBlockSortingIndex() {
-        // Since we're damping angular velocity, we want this to run at the very end, so
-        // we give it a large sorting value to put it at the end.
         return 5;
     }
 

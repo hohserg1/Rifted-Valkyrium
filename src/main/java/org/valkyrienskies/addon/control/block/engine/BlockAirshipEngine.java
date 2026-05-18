@@ -25,9 +25,7 @@ import org.valkyrienskies.mod.common.util.JOML;
  * tons of new classes for them. Only engines that add new functionality should have their own
  * class.
  */
-public abstract class BlockAirshipEngine extends BaseBlock implements IBlockForceProvider,
-    ITileEntityProvider {
-
+public abstract class BlockAirshipEngine extends BaseBlock implements IBlockForceProvider, ITileEntityProvider {
     public static final PropertyDirection FACING = PropertyDirection.create("facing");
     protected double enginePower;
 
@@ -38,10 +36,8 @@ public abstract class BlockAirshipEngine extends BaseBlock implements IBlockForc
     }
 
     @Override
-    public IBlockState getStateForPlacement(World worldIn, BlockPos pos, EnumFacing facing,
-        float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer) {
-        return this.getDefaultState()
-            .withProperty(FACING, EnumFacing.getDirectionFromEntityLiving(pos, placer));
+    public IBlockState getStateForPlacement(World worldIn, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer) {
+        return this.getDefaultState().withProperty(FACING, EnumFacing.getDirectionFromEntityLiving(pos, placer));
     }
 
     @Override
@@ -57,25 +53,20 @@ public abstract class BlockAirshipEngine extends BaseBlock implements IBlockForc
 
     @Override
     public int getMetaFromState(IBlockState state) {
-        int i = state.getValue(FACING).getIndex();
-        return i;
+        return state.getValue(FACING).getIndex();
     }
 
     @Override
-    public Vector3dc getBlockForceInShipSpace(World world, BlockPos pos, IBlockState state,
-                                              PhysicsObject physicsObject, double secondsToApply) {
+    public Vector3dc getBlockForceInShipSpace(World world, BlockPos pos, IBlockState state, PhysicsObject physicsObject, double secondsToApply) {
         Vector3d acting = new Vector3d(0, 0, 0);
-        if (!world.isBlockPowered(pos)) {
-            return acting;
-        }
+        if (!world.isBlockPowered(pos)) return acting;
 
         TileEntity tileEntity = world.getTileEntity(pos);
-        if (tileEntity instanceof TileEntityPropellerEngine) {
+        if (tileEntity instanceof TileEntityPropellerEngine tilePropellerEngine) {
             //Just set the Thrust to be the maximum
-            ((TileEntityPropellerEngine) tileEntity).updateTicksSinceLastRecievedSignal();
-            ((TileEntityPropellerEngine) tileEntity).setThrustMultiplierGoal(1D);
-            return ((TileEntityPropellerEngine) tileEntity)
-                .getForceOutputUnoriented(secondsToApply, physicsObject);
+            tilePropellerEngine.updateTicksSinceLastRecievedSignal();
+            tilePropellerEngine.setThrustMultiplierGoal(1D);
+            return tilePropellerEngine.getForceOutputUnoriented(secondsToApply, physicsObject);
         }
 
         return acting;
@@ -97,8 +88,7 @@ public abstract class BlockAirshipEngine extends BaseBlock implements IBlockForc
     }
 
     @Override
-    public boolean canConnectRedstone(IBlockState state, IBlockAccess world, BlockPos pos,
-        EnumFacing face) {
+    public boolean canConnectRedstone(IBlockState state, IBlockAccess world, BlockPos pos, EnumFacing face) {
         return true;
     }
 
@@ -111,8 +101,8 @@ public abstract class BlockAirshipEngine extends BaseBlock implements IBlockForc
     }
 
     public TileEntity createNewTileEntity(World worldIn, int meta) {
-        IBlockState state = getStateFromMeta(meta);
-        return new TileEntityPropellerEngine(JOML.convertTo3d(state.getValue(FACING).getOpposite().getDirectionVec()), true, getEnginePower());
+        IBlockState state = this.getStateFromMeta(meta);
+        return new TileEntityPropellerEngine(JOML.convertTo3d(state.getValue(FACING).getOpposite().getDirectionVec()), true, this.getEnginePower());
     }
 
     public void setEnginePower(double power) {

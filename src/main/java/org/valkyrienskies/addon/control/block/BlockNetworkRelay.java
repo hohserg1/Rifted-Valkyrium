@@ -28,16 +28,15 @@ import java.util.List;
 
 @ParametersAreNonnullByDefault
 public class BlockNetworkRelay extends BaseBlock implements ITileEntityProvider {
-
     public static final PropertyDirection FACING = PropertyDirection.create("facing");
 
     private static final AxisAlignedBB EAST = new AxisAlignedBB(0D / 16D, 5D / 16D, 5D / 16D,
         6D / 16D, 11D / 16D, 11D / 16D);
-    private static final AxisAlignedBB WEST = new AxisAlignedBB(16D / 16D, 5D / 16D, 5D / 16D,
+    private static final AxisAlignedBB WEST = new AxisAlignedBB(1D, 5D / 16D, 5D / 16D,
         10D / 16D, 11D / 16D, 11D / 16D);
     private static final AxisAlignedBB SOUTH = new AxisAlignedBB(5D / 16D, 5D / 16D, 0D / 16D,
         11D / 16D, 11D / 16D, 6D / 16D);
-    private static final AxisAlignedBB NORTH = new AxisAlignedBB(5D / 16D, 5D / 16D, 16D / 16D,
+    private static final AxisAlignedBB NORTH = new AxisAlignedBB(5D / 16D, 5D / 16D, 1D,
         11D / 16D, 11D / 16D, 10D / 16D);
     private static final AxisAlignedBB UP = new AxisAlignedBB(5D / 16D, 0, 5D / 16D, 11D / 16D,
         6D / 16D, 11D / 16D);
@@ -62,8 +61,7 @@ public class BlockNetworkRelay extends BaseBlock implements ITileEntityProvider 
 
     @Override
     @Nonnull
-    public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos,
-        EnumFacing face) {
+    public BlockFaceShape getBlockFaceShape(IBlockAccess worldIn, IBlockState state, BlockPos pos, EnumFacing face) {
         return BlockFaceShape.UNDEFINED;
     }
 
@@ -71,24 +69,14 @@ public class BlockNetworkRelay extends BaseBlock implements ITileEntityProvider 
     @Nonnull
     public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
         EnumFacing enumfacing = state.getValue(FACING);
-        switch (enumfacing) {
-            case EAST:
-                return EAST;
-            case WEST:
-                return WEST;
-            case SOUTH:
-                return SOUTH;
-            case NORTH:
-                return NORTH;
-            case UP:
-                return UP;
-            case DOWN:
-                return DOWN;
-        }
-
-        throw new RuntimeException(
-            "Encountered an EnumFacing that was not EAST, WEST, SOUTH, NORTH, UP, or DOWN. " +
-                "This should never, ever happen.");
+        return switch (enumfacing) {
+            case EAST -> EAST;
+            case WEST -> WEST;
+            case SOUTH -> SOUTH;
+            case NORTH -> NORTH;
+            case UP -> UP;
+            case DOWN -> DOWN;
+        };
     }
 
     @Override

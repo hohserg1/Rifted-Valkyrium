@@ -17,7 +17,7 @@ import org.valkyrienskies.addon.control.block.multiblocks.TileEntityRudderPart;
 import org.valkyrienskies.addon.control.block.multiblocks.TileEntityValkyriumCompressorPart;
 import org.valkyrienskies.addon.control.block.multiblocks.TileEntityValkyriumEnginePart;
 import org.valkyrienskies.addon.control.block.torque.TileEntityRotationAxle;
-import org.valkyrienskies.addon.control.nodeControls.NodeKeyHandler;
+import org.valkyrienskies.addon.control.nodecontrols.NodeKeyHandler;
 import org.valkyrienskies.addon.control.renderer.*;
 import org.valkyrienskies.addon.control.tileentity.*;
 import org.valkyrienskies.mod.client.render.GibsModelRegistry;

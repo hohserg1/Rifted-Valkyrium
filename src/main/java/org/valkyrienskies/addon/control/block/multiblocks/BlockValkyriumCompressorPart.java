@@ -64,22 +64,16 @@ public class BlockValkyriumCompressorPart extends BaseBlock implements ITileEnti
     }
 
     @Override
-    public Vector3dc getBlockForceInShipSpace(World world, BlockPos pos, IBlockState state,
-                                              PhysicsObject physicsObject,
-                                              double secondsToApply) {
-        TileEntity tileEntity = world.getTileEntity(pos);
-        if (tileEntity instanceof TileEntityValkyriumCompressorPart) {
-            TileEntityValkyriumCompressorPart tileCompressorPart = (TileEntityValkyriumCompressorPart) tileEntity;
-            return tileCompressorPart.getForceOutputUnoriented(secondsToApply, physicsObject);
-        }
-        return null;
+    public Vector3dc getBlockForceInShipSpace(World world, BlockPos pos, IBlockState state, PhysicsObject physicsObject, double secondsToApply) {
+        if (!(world.getTileEntity(pos) instanceof TileEntityValkyriumCompressorPart tileCompressorPart)) return null;
+        return tileCompressorPart.getForceOutputUnoriented(secondsToApply, physicsObject);
     }
 
     @Override
     public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
         TileEntity tile = worldIn.getTileEntity(pos);
-        if (tile instanceof TileEntityValkyriumCompressorPart) {
-            ((TileEntityValkyriumCompressorPart) tile).disassembleMultiblock();
+        if (tile instanceof TileEntityValkyriumCompressorPart tileCompressorPart) {
+            tileCompressorPart.disassembleMultiblock();
         }
         super.breakBlock(worldIn, pos, state);
     }

@@ -19,9 +19,7 @@ import valkyrienwarfare.api.TransformType;
 import java.util.List;
 import java.util.Optional;
 
-public class TileEntityRudderPart extends
-    TileEntityMultiblockPartForce<RudderAxleMultiblockSchematic, TileEntityRudderPart> {
-
+public class TileEntityRudderPart extends TileEntityMultiblockPartForce<RudderAxleMultiblockSchematic, TileEntityRudderPart> {
     // Angle must be between -90 and 90
     private double rudderAngle;
     // For client rendering purposes only
@@ -38,10 +36,10 @@ public class TileEntityRudderPart extends
     @Override
     public void update() {
         super.update();
-        this.prevRudderAngle = rudderAngle;
+        this.prevRudderAngle = this.rudderAngle;
         if (this.getWorld().isRemote) {
             // Do this to smooth out lag between the server sending packets.
-            this.rudderAngle = rudderAngle + .5 * (nextRudderAngle - rudderAngle);
+            this.rudderAngle = this.rudderAngle + 0.5 * (this.nextRudderAngle - this.rudderAngle);
         }
     }
 
@@ -54,7 +52,7 @@ public class TileEntityRudderPart extends
                 facingOffset.z + pos.getZ() + 0.5
             );
         }
-        else return null;
+        return null;
     }
 
     private Vector3d getForcePosRelativeToAxleInShipSpace() {
@@ -85,8 +83,9 @@ public class TileEntityRudderPart extends
                 .transformDirection(forcePosRelativeToShipCenter, TransformType.SUBSPACE_TO_GLOBAL);
 
             Vector3d velocity = physicsObject.getPhysicsCalculations().getVelocityAtPoint(forcePosRelativeToShipCenter);
-            physicsObject.getShipTransformationManager().getCurrentPhysicsTransform()
-                .transformDirection(velocity, TransformType.GLOBAL_TO_SUBSPACE);
+            physicsObject.getShipTransformationManager()
+                    .getCurrentPhysicsTransform()
+                    .transformDirection(velocity, TransformType.GLOBAL_TO_SUBSPACE);
             // Now we have the velocity in local, the position in local, and the position relative to the axle
             Vec3i directionAxle = this.getRudderAxleAxisDirection().get().getDirectionVec();
             Vector3d directionAxleVector = new Vector3d(directionAxle.getX(), directionAxle.getY(), directionAxle.getZ());
@@ -97,46 +96,42 @@ public class TileEntityRudderPart extends
             double dragMagnitude = surfaceNormal.dot(velocity) * 10000;
             return surfaceNormal.mul(-dragMagnitude);
         }
-        else return null;
+        return null;
     }
 
     @Override
     public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);
-        rudderAngle = compound.getDouble("rudderAngle");
+        this.rudderAngle = compound.getDouble("rudderAngle");
     }
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         NBTTagCompound toReturn = super.writeToNBT(compound);
-        toReturn.setDouble("rudderAngle", rudderAngle);
+        toReturn.setDouble("rudderAngle", this.rudderAngle);
         return toReturn;
     }
 
     @Override
     public void onDataPacket(net.minecraft.network.NetworkManager net,
         net.minecraft.network.play.server.SPacketUpdateTileEntity pkt) {
-        double currentRudderAngle = rudderAngle;
+        double currentRudderAngle = this.rudderAngle;
         super.onDataPacket(net, pkt);
-        nextRudderAngle = pkt.getNbtCompound().getDouble("rudderAngle");
+        this.nextRudderAngle = pkt.getNbtCompound().getDouble("rudderAngle");
         this.rudderAngle = currentRudderAngle;
     }
 
     @Override
     public Vector3dc getForceOutputUnoriented(double secondsToApply, PhysicsObject physicsObject) {
         Vector3d rudderForce = this.calculateForceFromVelocity(physicsObject);
-        if (rudderForce == null || rudderForce.lengthSquared() <= 1.0D) {
-            return null;
-        }
+        if (rudderForce == null || rudderForce.lengthSquared() <= 1.0D) return null;
         return rudderForce.mul(secondsToApply);
     }
 
     @Override
     public Vector3dc getForceOutputNormal(double secondsToApply, PhysicsObject object) {
         Vector3d rudderForce = this.calculateForceFromVelocity(object);
-        if (rudderForce == null || rudderForce.lengthSquared() <= 1.0D) {
-            return null;
-        }
+        if (rudderForce == null || rudderForce.lengthSquared() <= 1.0D) return null;
         return rudderForce.normalize();
     }
 
@@ -149,38 +144,22 @@ public class TileEntityRudderPart extends
 
     public Optional<EnumFacing> getRudderAxleAxisDirection() {
         Optional<RudderAxleMultiblockSchematic> rudderAxleSchematicOptional = getRudderAxleSchematic();
-        if (rudderAxleSchematicOptional.isPresent()) {
-            return Optional.of(rudderAxleSchematicOptional.get().getAxleAxisDirection());
-        } else {
-            return Optional.empty();
-        }
+        return rudderAxleSchematicOptional.map(RudderAxleMultiblockSchematic::getAxleAxisDirection);
     }
 
     public Optional<EnumFacing> getRudderAxleFacingDirection() {
         Optional<RudderAxleMultiblockSchematic> rudderAxleSchematicOptional = getRudderAxleSchematic();
-        if (rudderAxleSchematicOptional.isPresent()) {
-            return Optional.of(rudderAxleSchematicOptional.get().getAxleFacingDirection());
-        } else {
-            return Optional.empty();
-        }
+        return rudderAxleSchematicOptional.map(RudderAxleMultiblockSchematic::getAxleFacingDirection);
     }
 
     public Optional<Integer> getRudderAxleLength() {
         Optional<RudderAxleMultiblockSchematic> rudderAxleSchematicOptional = getRudderAxleSchematic();
-        if (rudderAxleSchematicOptional.isPresent()) {
-            return Optional.of(rudderAxleSchematicOptional.get().getAxleLength());
-        } else {
-            return Optional.empty();
-        }
+        return rudderAxleSchematicOptional.map(RudderAxleMultiblockSchematic::getAxleLength);
     }
 
     private Optional<RudderAxleMultiblockSchematic> getRudderAxleSchematic() {
-        if (this.isPartOfAssembledMultiblock()) {
-            return Optional.of(getMultiBlockSchematic());
-        }
-        else {
-            return Optional.empty();
-        }
+        if (this.isPartOfAssembledMultiblock()) return Optional.of(getMultiBlockSchematic());
+        return Optional.empty();
     }
 
     public double getRudderAngle() {
@@ -231,11 +210,9 @@ public class TileEntityRudderPart extends
 
             return new AxisAlignedBB(minPos, maxPos)
                 .grow(otherAxisXExpanded, otherAxisYExpanded, otherAxisZExpanded)
-                .grow(.5, .5, .5);
+                .grow(0.5, 0.5, 0.5);
         }
-        else {
-            return super.getRenderBoundingBox();
-        }
+        return super.getRenderBoundingBox();
     }
 
     @Override

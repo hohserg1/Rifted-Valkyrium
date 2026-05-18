@@ -54,16 +54,15 @@ public class BlockSpeedTelegraph extends BlockNodeControlBasic {
     public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state,
         EntityLivingBase placer, ItemStack stack) {
         super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
-        worldIn.setBlockState(pos.up(),
-            ValkyrienSkiesControl.INSTANCE.vsControlBlocks.dummyTelegraph.getDefaultState());
+        worldIn.setBlockState(pos.up(), ValkyrienSkiesControl.INSTANCE.vsControlBlocks.dummyTelegraph.getDefaultState());
     }
 
     @Override
     public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
         super.breakBlock(worldIn, pos, state);
-        if (worldIn.getBlockState(pos.up())
-            .getBlock() == ValkyrienSkiesControl.INSTANCE.vsControlBlocks.dummyTelegraph) {
-            worldIn.setBlockToAir(pos.up());
+        BlockPos posUp = pos.up();
+        if (worldIn.getBlockState(posUp).getBlock() == ValkyrienSkiesControl.INSTANCE.vsControlBlocks.dummyTelegraph) {
+            worldIn.setBlockToAir(posUp);
         }
     }
 
@@ -71,9 +70,8 @@ public class BlockSpeedTelegraph extends BlockNodeControlBasic {
     public boolean canPlaceBlockAt(World worldIn, BlockPos pos) {
         if (super.canPlaceBlockAt(worldIn, pos)) {
             return worldIn.getBlockState(pos.up()).getBlock().isReplaceable(worldIn, pos);
-        } else {
-            return false;
         }
+        return false;
     }
 
     @Override
@@ -92,9 +90,7 @@ public class BlockSpeedTelegraph extends BlockNodeControlBasic {
 
     @Override
     public int getMetaFromState(IBlockState state) {
-        int i = state.getValue(FACING)
-            .getIndex();
-        return i;
+        return state.getValue(FACING).getIndex();
     }
 
     @Override

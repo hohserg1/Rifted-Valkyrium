@@ -39,35 +39,30 @@ public class BlockRotatedPillar extends BaseBlock {
      * Returns the blockstate with the given rotation from the passed blockstate. If inapplicable, returns the passed
      * blockstate.
      */
+    @Override
     public IBlockState withRotation(IBlockState state, Rotation rot) {
-        switch (rot) {
-            case COUNTERCLOCKWISE_90:
-            case CLOCKWISE_90:
-
-                switch ((EnumFacing.Axis)state.getValue(AXIS)) {
-                    case X:
-                        return state.withProperty(AXIS, EnumFacing.Axis.Z);
-                    case Z:
-                        return state.withProperty(AXIS, EnumFacing.Axis.X);
-                    default:
-                        return state;
-                }
-
-            default:
-                return state;
-        }
+        return switch (rot) {
+            case COUNTERCLOCKWISE_90, CLOCKWISE_90 -> switch ((EnumFacing.Axis) state.getValue(AXIS)) {
+                case X -> state.withProperty(AXIS, EnumFacing.Axis.Z);
+                case Z -> state.withProperty(AXIS, EnumFacing.Axis.X);
+                default -> state;
+            };
+            default -> state;
+        };
     }
 
     /**
      * Convert the given metadata into a BlockState for this Block
      */
+    @Override
     public IBlockState getStateFromMeta(int meta) {
         EnumFacing.Axis enumfacing$axis = EnumFacing.Axis.Y;
         int i = meta & 12;
 
         if (i == 4) {
             enumfacing$axis = EnumFacing.Axis.X;
-        } else if (i == 8) {
+        }
+        else if (i == 8) {
             enumfacing$axis = EnumFacing.Axis.Z;
         }
 
@@ -83,7 +78,8 @@ public class BlockRotatedPillar extends BaseBlock {
 
         if (enumfacing$axis == EnumFacing.Axis.X) {
             i |= 4;
-        } else if (enumfacing$axis == EnumFacing.Axis.Z) {
+        }
+        else if (enumfacing$axis == EnumFacing.Axis.Z) {
             i |= 8;
         }
 

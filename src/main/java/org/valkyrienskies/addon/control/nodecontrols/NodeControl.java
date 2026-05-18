@@ -1,4 +1,4 @@
-package org.valkyrienskies.addon.control.nodeControls;
+package org.valkyrienskies.addon.control.nodecontrols;
 
 import java.util.Map;
 import java.util.function.Supplier;

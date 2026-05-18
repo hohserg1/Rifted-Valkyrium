@@ -5,6 +5,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.valkyrienskies.addon.control.MultiblockRegistry;
 import org.valkyrienskies.addon.control.ValkyrienSkiesControl;
 
@@ -13,14 +14,14 @@ import java.util.List;
 
 public class ValkyriumEngineMultiblockSchematic implements IMultiblockSchematic {
 
-    private final List<BlockPosBlockPair> structureRelativeToCenter;
+    private final List<ImmutablePair<BlockPos, Block>> structureRelativeToCenter;
     private String schematicID;
     private EnumMultiblockRotation multiblockRotation;
     private BlockPos torqueOutputPos;
     private Vec3i torqueOutputDirection;
 
     public ValkyriumEngineMultiblockSchematic() {
-        this.structureRelativeToCenter = new ArrayList<BlockPosBlockPair>();
+        this.structureRelativeToCenter = new ArrayList<>();
         this.schematicID = MultiblockRegistry.EMPTY_SCHEMATIC_ID;
         this.multiblockRotation = EnumMultiblockRotation.NONE;
     }
@@ -31,8 +32,7 @@ public class ValkyriumEngineMultiblockSchematic implements IMultiblockSchematic 
         for (int x = -1; x <= 1; x++) {
             for (int y = 0; y <= 1; y++) {
                 for (int z = -1; z <= 0; z++) {
-                    structureRelativeToCenter
-                        .add(new BlockPosBlockPair(new BlockPos(x, y, z), enginePart));
+                    this.structureRelativeToCenter.add(new ImmutablePair<>(new BlockPos(x, y, z), enginePart));
                 }
             }
         }
@@ -42,8 +42,8 @@ public class ValkyriumEngineMultiblockSchematic implements IMultiblockSchematic 
     }
 
     @Override
-    public List<BlockPosBlockPair> getStructureRelativeToCenter() {
-        return structureRelativeToCenter;
+    public List<ImmutablePair<BlockPos, Block>> getStructureRelativeToCenter() {
+        return this.structureRelativeToCenter;
     }
 
     @Override
@@ -54,11 +54,10 @@ public class ValkyriumEngineMultiblockSchematic implements IMultiblockSchematic 
     @Override
     public void applyMultiblockCreation(World world, BlockPos tilePos, BlockPos relativePos) {
         TileEntity tileEntity = world.getTileEntity(tilePos);
-        if (!(tileEntity instanceof TileEntityValkyriumEnginePart)) {
+        if (!(tileEntity instanceof TileEntityValkyriumEnginePart tileEnginePart)) {
             throw new IllegalStateException();
         }
-        TileEntityValkyriumEnginePart enginePart = (TileEntityValkyriumEnginePart) tileEntity;
-        enginePart.assembleMultiblock(this, relativePos);
+        tileEnginePart.assembleMultiblock(this, relativePos);
     }
 
     @Override
@@ -73,20 +72,18 @@ public class ValkyriumEngineMultiblockSchematic implements IMultiblockSchematic 
         for (EnumMultiblockRotation potentialRotation : EnumMultiblockRotation.values()) {
             ValkyriumEngineMultiblockSchematic variant = new ValkyriumEngineMultiblockSchematic();
 
-            variant.initializeMultiblockSchematic(
-                getSchematicPrefix() + ":rot:" + potentialRotation.toString());
+            variant.initializeMultiblockSchematic(getSchematicPrefix() + ":rot:" + potentialRotation.toString());
 
-            List<BlockPosBlockPair> rotatedPairs = new ArrayList<BlockPosBlockPair>();
-            for (BlockPosBlockPair unrotatedPairs : variant.structureRelativeToCenter) {
-                BlockPos rotatedPos = potentialRotation.rotatePos(unrotatedPairs.getPos());
-                rotatedPairs.add(new BlockPosBlockPair(rotatedPos, unrotatedPairs.getBlock()));
+            List<ImmutablePair<BlockPos, Block>> rotatedPairs = new ArrayList<>();
+            for (ImmutablePair<BlockPos, Block> unrotatedPairs : variant.structureRelativeToCenter) {
+                BlockPos rotatedPos = potentialRotation.rotatePos(unrotatedPairs.getLeft());
+                rotatedPairs.add(new ImmutablePair<>(rotatedPos, unrotatedPairs.getRight()));
             }
             variant.structureRelativeToCenter.clear();
             variant.structureRelativeToCenter.addAll(rotatedPairs);
             variant.multiblockRotation = potentialRotation;
             variant.torqueOutputPos = potentialRotation.rotatePos(variant.torqueOutputPos);
-            variant.torqueOutputDirection = potentialRotation
-                .rotatePos((BlockPos) variant.torqueOutputDirection);
+            variant.torqueOutputDirection = potentialRotation.rotatePos((BlockPos) variant.torqueOutputDirection);
             variants.add(variant);
         }
         return variants;
@@ -94,16 +91,14 @@ public class ValkyriumEngineMultiblockSchematic implements IMultiblockSchematic 
 
     @Override
     public EnumMultiblockRotation getMultiblockRotation() {
-        return multiblockRotation;
+        return this.multiblockRotation;
     }
 
-
     public BlockPos getTorqueOutputPos() {
-        return torqueOutputPos;
+        return this.torqueOutputPos;
     }
 
     public Vec3i getTorqueOutputDirection() {
-        return torqueOutputDirection;
+        return this.torqueOutputDirection;
     }
-
 }

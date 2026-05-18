@@ -13,7 +13,6 @@ import java.util.List;
 
 @ParametersAreNonnullByDefault
 public class BlockPhysicsInfuserCreative extends BlockPhysicsInfuser {
-
     public BlockPhysicsInfuserCreative() {
         super("physics_infuser_creative", BlockFinder.BlockFinderType.FIND_ALL_BLOCKS);
     }
@@ -24,5 +23,4 @@ public class BlockPhysicsInfuserCreative extends BlockPhysicsInfuser {
         tooltip.add(TextFormatting.BLUE + I18n.format("tooltip.vs_control.physics_infuser_creative_1"));
         tooltip.add(TextFormatting.RED + "" + TextFormatting.ITALIC + I18n.format("tooltip.vs_control.physics_infuser_creative_2"));
     }
-
 }

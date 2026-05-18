@@ -46,102 +46,80 @@ public class TileEntityGiantPropellerPart extends
     }
 
     @Override
-    public Vector3dc getForceOutputNormal(double secondsToApply,
-                                          PhysicsObject physicsObject) {
-        if (!this.isPartOfAssembledMultiblock()) {
+    public Vector3dc getForceOutputNormal(double secondsToApply, PhysicsObject physicsObject) {
+        if (!this.isPartOfAssembledMultiblock()) return null;
+
+        if (!this.isMaster()) {
+            TileEntityGiantPropellerPart master = this.getMaster();
+            if (master != null) return master.getForceOutputNormal(secondsToApply, physicsObject);
             return null;
-        } else {
-            if (!this.isMaster()) {
-                TileEntityGiantPropellerPart master = this.getMaster();
-                if (master != null) {
-                    return master.getForceOutputNormal(secondsToApply, physicsObject);
-                } else {
-                    return null;
-                }
-            } else {
-                if (!this.getRotationNode().isPresent()) {
-                    return null;
-                } else if (this.getRotationNode().get().getAngularVelocity() == 0) {
-                    return null;
-                }
-                Vector3d facingDir = JOML.convertTo3d(this.getPropellerFacing().getDirectionVec());
-                final double angularVelocity = this.getRotationNode().get().getAngularVelocity();
-                if (angularVelocity != 0) {
-                    // We don't want the propeller animation and force to be backwards.
-                    facingDir.mul(-Math.signum(angularVelocity));
-                }
-                return facingDir;
-            }
+        }
+        else {
+            if (this.getRotationNode().isEmpty()) return null;
+            else if (this.getRotationNode().get().getAngularVelocity() == 0) return null;
+
+            Vector3d facingDir = JOML.convertTo3d(this.getPropellerFacing().getDirectionVec());
+            final double angularVelocity = this.getRotationNode().get().getAngularVelocity();
+            // We don't want the propeller animation and force to be backwards.
+            if (angularVelocity != 0) facingDir.mul(-Math.signum(angularVelocity));
+            return facingDir;
         }
     }
 
     @Override
     public double getThrustMagnitude(PhysicsObject physicsObject) {
-        if (!this.isPartOfAssembledMultiblock()) {
+        if (!this.isPartOfAssembledMultiblock()) return 0;
+
+        if (!this.isMaster()) {
+            TileEntityGiantPropellerPart master = this.getMaster();
+            if (master != null) return master.getThrustMagnitude(physicsObject);
             return 0;
-        } else {
-            if (!this.isMaster()) {
-                TileEntityGiantPropellerPart master = this.getMaster();
-                if (master != null) {
-                    return master.getThrustMagnitude(physicsObject);
-                } else {
-                    return 0;
-                }
-            } else {
-                if (!this.getRotationNode().isPresent()) {
-                    return 0;
-                }
-                double angularVel = this.getRotationNode().get().getAngularVelocity();
-                // Temporary simple thrust function.
-                return 500D * angularVel * angularVel;
-            }
+        }
+        else {
+            if (this.getRotationNode().isEmpty()) return 0;
+            double angularVel = this.getRotationNode().get().getAngularVelocity();
+            // Temporary simple thrust function.
+            return 500D * angularVel * angularVel;
         }
     }
 
     @Override
     public void update() {
         if (!this.getWorld().isRemote) {
-            if (firstUpdate) {
+            if (this.firstUpdate) {
                 this.rotationNode.markInitialized();
                 this.rotationNode.queueTask(() -> this.rotationNode.setAngularVelocityRatio(
                     this.getMultiBlockSchematic().getPropellerFacing().getOpposite(),
-                    Optional.of(-1D)));
-                firstUpdate = false;
+                    Optional.of(-1D)
+                ));
+                this.firstUpdate = false;
             }
 
             if (this.isPartOfAssembledMultiblock()) {
-                Optional<PhysicsObject> physicsObjectOptional = ValkyrienUtils
-                    .getPhysoManagingBlock(getWorld(), getPos());
+                Optional<PhysicsObject> physicsObjectOptional = ValkyrienUtils.getPhysoManagingBlock(getWorld(), getPos());
                 if (this.isMaster()) {
-                    if (!rotationNode.hasBeenPlacedIntoNodeWorld()) {
-                        IRotationNodeWorld nodeWorld;
-                        if (physicsObjectOptional.isPresent()) {
-                            nodeWorld = ValkyrienSkiesControlUtil.getRotationWorldFromShip(physicsObjectOptional.get());
-                        } else {
-                            nodeWorld = ValkyrienSkiesControlUtil.getRotationWorldFromWorld(getWorld());
-                        }
+                    if (!this.rotationNode.hasBeenPlacedIntoNodeWorld()) {
+                        IRotationNodeWorld nodeWorld = physicsObjectOptional.map(ValkyrienSkiesControlUtil::getRotationWorldFromShip)
+                                .orElseGet(() -> ValkyrienSkiesControlUtil.getRotationWorldFromWorld(getWorld()));
 
                         nodeWorld.enqueueTaskOntoWorld(
-                            () -> nodeWorld.setNodeFromPos(getPos(), rotationNode));
+                            () -> nodeWorld.setNodeFromPos(getPos(), this.rotationNode)
+                        );
 
-                        final int propellerRadius = this.getMultiBlockSchematic()
-                            .getPropellerRadius();
-                        this.rotationNode.queueTask(() -> this.rotationNode
-                            .setRotationalInertia(propellerRadius * propellerRadius));
+                        final int propellerRadius = this.getMultiBlockSchematic().getPropellerRadius();
+                        this.rotationNode.queueTask(() -> this.rotationNode.setRotationalInertia(propellerRadius * propellerRadius));
                     }
                     this.prevPropellerAngle = this.propellerAngle;
                     // May need to convert to degrees from radians.
-                    this.propellerAngle = Math
-                        .toDegrees(rotationNode.getAngularRotationUnsynchronized());
+                    this.propellerAngle = Math.toDegrees(rotationNode.getAngularRotationUnsynchronized());
                 }
                 VSNetwork.sendTileToAllNearby(this);
             }
-        } else {
+        }
+        else {
             this.prevPropellerAngle = this.propellerAngle;
-            double increment = nextPropellerAngle - propellerAngle;
-            if (increment < 0) {
-                increment = MathHelper.wrapDegrees(increment);
-            }
+            double increment = this.nextPropellerAngle - this.propellerAngle;
+            if (increment < 0) increment = MathHelper.wrapDegrees(increment);
             this.propellerAngle = this.propellerAngle + increment * .75;
         }
     }
@@ -163,46 +141,39 @@ public class TileEntityGiantPropellerPart extends
         super.disassembleMultiblockLocal();
 
         Optional<PhysicsObject> object = ValkyrienUtils.getPhysoManagingBlock(getWorld(), getPos());
-        object.ifPresent(obj -> this.rotationNode.queueTask(rotationNode::resetNodeData));
+        object.ifPresent(obj -> this.rotationNode.queueTask(this.rotationNode::resetNodeData));
     }
 
     @Override
     public Optional<IRotationNode> getRotationNode() {
-        if (rotationNode.isInitialized()) {
-            return Optional.of(rotationNode);
-        } else {
-            return Optional.empty();
-        }
+        if (this.rotationNode.isInitialized()) return Optional.of(this.rotationNode);
+        return Optional.empty();
     }
 
     public EnumFacing getPropellerFacing() {
-        if (!this.isPartOfAssembledMultiblock()) {
-            return null;
-        }
-        return getMultiBlockSchematic().getPropellerFacing();
+        if (!this.isPartOfAssembledMultiblock()) return null;
+        return this.getMultiBlockSchematic().getPropellerFacing();
     }
 
     public int getPropellerRadius() {
-        if (!this.isPartOfAssembledMultiblock()) {
-            return 1;
-        }
-        return getMultiBlockSchematic().getPropellerRadius();
+        if (!this.isPartOfAssembledMultiblock()) return 1;
+        return this.getMultiBlockSchematic().getPropellerRadius();
     }
 
     public float getPropellerAngle(float partialTick) {
-        return (float) (prevPropellerAngle + (propellerAngle - prevPropellerAngle) * partialTick);
+        return (float) (this.prevPropellerAngle + (this.propellerAngle - this.prevPropellerAngle) * partialTick);
     }
 
     @Override
     public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);
-        rotationNode.readFromNBT(compound);
+        this.rotationNode.readFromNBT(compound);
     }
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         super.writeToNBT(compound);
-        rotationNode.writeToNBT(compound);
+        this.rotationNode.writeToNBT(compound);
         return compound;
     }
 

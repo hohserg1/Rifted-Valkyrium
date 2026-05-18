@@ -25,9 +25,7 @@ public abstract class BasicNodeTileEntity extends TileEntity implements IVSNodeP
 
     @Override
     public SPacketUpdateTileEntity getUpdatePacket() {
-        SPacketUpdateTileEntity packet = new SPacketUpdateTileEntity(pos, 0,
-            writeToNBT(new NBTTagCompound()));
-        return packet;
+        return new SPacketUpdateTileEntity(pos, 0, writeToNBT(new NBTTagCompound()));
     }
 
     @Override
@@ -37,14 +35,14 @@ public abstract class BasicNodeTileEntity extends TileEntity implements IVSNodeP
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-        tileNode.writeToNBT(compound);
+        this.tileNode.writeToNBT(compound);
         return super.writeToNBT(compound);
     }
 
     @Override
     public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);
-        tileNode.readFromNBT(compound);
+        this.tileNode.readFromNBT(compound);
     }
 
     @Override
@@ -55,7 +53,7 @@ public abstract class BasicNodeTileEntity extends TileEntity implements IVSNodeP
     @Override
     public NBTTagCompound getUpdateTag() {
         NBTTagCompound toReturn = super.getUpdateTag();
-        return writeToNBT(toReturn);
+        return this.writeToNBT(toReturn);
     }
 
     @Override
@@ -65,7 +63,7 @@ public abstract class BasicNodeTileEntity extends TileEntity implements IVSNodeP
 
     @Override
     public void invalidate() {
-        VSNode_TileEntity toInvalidate = getNode();
+        VSNode_TileEntity toInvalidate = this.getNode();
         Graph graph = toInvalidate.getGraph();
         if (graph != null) {
             graph.remove(toInvalidate);
@@ -145,18 +143,11 @@ public abstract class BasicNodeTileEntity extends TileEntity implements IVSNodeP
         }
     }
 
-    public static class GraphData implements Mergeable<GraphData> {
-
+    public record GraphData(int uid) implements Mergeable<GraphData> {
         private static volatile int sUid = 0;
 
-        private final int uid;
-
         public GraphData() {
-            uid = ++sUid;
-        }
-
-        public GraphData(int uid) {
-            this.uid = uid;
+            this(++sUid);
         }
 
         @Override
@@ -168,10 +159,5 @@ public abstract class BasicNodeTileEntity extends TileEntity implements IVSNodeP
         public GraphData copy() {
             return new GraphData();
         }
-
-        public int getUid() {
-            return uid;
-        }
     }
-
 }

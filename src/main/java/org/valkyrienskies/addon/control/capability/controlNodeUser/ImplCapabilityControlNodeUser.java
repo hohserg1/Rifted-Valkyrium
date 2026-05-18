@@ -3,19 +3,10 @@ package org.valkyrienskies.addon.control.capability.controlNodeUser;
 import net.minecraft.client.Minecraft;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
-import org.spongepowered.common.util.Constants;
 import org.valkyrienskies.addon.control.ValkyrienSkiesControl;
 import org.valkyrienskies.addon.control.network.VSNodeControlMessage;
-import org.valkyrienskies.addon.control.nodeControls.NodeControl;
 import org.valkyrienskies.addon.control.tileentity.TileEntityControlNodeImpl;
-import org.valkyrienskies.addon.control.tileentity.TileEntityLiftLever;
-import org.valkyrienskies.addon.control.tileentity.TileEntityShipHelm;
-import org.valkyrienskies.addon.control.tileentity.TileEntitySpeedTelegraph;
-import org.valkyrienskies.mod.common.ValkyrienSkiesMod;
-import org.valkyrienskies.mod.common.piloting.PilotControlsMessage;
 import org.valkyrienskies.mod.common.ships.ship_world.PhysicsObject;
-
-import java.util.UUID;
 
 public class ImplCapabilityControlNodeUser implements ICapabilityControlNodeUser {
     private PhysicsObject ship;

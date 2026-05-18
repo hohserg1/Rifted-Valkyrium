@@ -8,18 +8,12 @@ import org.valkyrienskies.addon.control.ValkyrienSkiesControl;
 import org.valkyrienskies.addon.control.gui.VSGuiHandler;
 
 public class CommonProxyControl  {
-
-    public void preInit(FMLStateEvent event) {
-
-    }
+    public void preInit(FMLStateEvent event) {}
 
     public void init(FMLStateEvent event) {
         MinecraftForge.EVENT_BUS.register(new ControlEventsCommon());
         NetworkRegistry.INSTANCE.registerGuiHandler(ValkyrienSkiesControl.INSTANCE, new VSGuiHandler());
     }
 
-    public void postInit(FMLStateEvent event) {
-
-    }
-
+    public void postInit(FMLStateEvent event) {}
 }

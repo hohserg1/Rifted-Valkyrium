@@ -55,7 +55,7 @@ public class ImplRotationNodeWorld implements IRotationNodeWorld {
 
     @Override
     public void enqueueTaskOntoWorld(Runnable task) {
-        queuedTasks.add(task);
+        this.queuedTasks.add(task);
     }
 
     /**
@@ -63,7 +63,7 @@ public class ImplRotationNodeWorld implements IRotationNodeWorld {
      */
     @Override
     public void enqueueTaskOntoNode(Consumer<IRotationNode> task, BlockPos taskPos) {
-        queuedTasks.add(() -> {
+        this.queuedTasks.add(() -> {
             IRotationNode nodeAtPos = getNodeFromPos(taskPos);
             if (nodeAtPos != null) {
                 task.accept(nodeAtPos);
@@ -78,11 +78,11 @@ public class ImplRotationNodeWorld implements IRotationNodeWorld {
     @Override
     public void processQueuedTasks() {
         PhysicsAssert.assertPhysicsThread();
-        while (!queuedTasks.isEmpty()) {
-            Runnable queuedTask = queuedTasks.remove();
+        while (!this.queuedTasks.isEmpty()) {
+            Runnable queuedTask = this.queuedTasks.remove();
             queuedTask.run();
         }
-        for (IRotationNode node : posToNodeMap.values()) {
+        for (IRotationNode node : this.posToNodeMap.values()) {
             while (!node.getQueuedTasks().isEmpty()) {
                 node.getQueuedTasks().remove().run();
             }
@@ -99,7 +99,7 @@ public class ImplRotationNodeWorld implements IRotationNodeWorld {
     public void processTorquePhysics(double timeDelta) {
         PhysicsAssert.assertPhysicsThread();
         // Remove rotation nodes that were marked for deletion
-        posToNodeMap.entrySet().removeIf(entry -> entry.getValue().markedForDeletion());
+        this.posToNodeMap.entrySet().removeIf(entry -> entry.getValue().markedForDeletion());
 
         processQueuedTasks();
 
@@ -108,8 +108,8 @@ public class ImplRotationNodeWorld implements IRotationNodeWorld {
 
         // Very naive inefficient algorithm, but I think it works pretty well.
         // For reference, omega is angular velocity.
-        while (nodesToVisit.size() > 0) {
-            IRotationNode startNode = nodesToVisit.get(0);
+        while (!nodesToVisit.isEmpty()) {
+            IRotationNode startNode = nodesToVisit.getFirst();
             Set<IRotationNode> visitedNodes = new HashSet<>();
             double apparentTorque = calculateApparentTorque(startNode, visitedNodes);
             visitedNodes.clear(); // not the best practice
@@ -129,13 +129,14 @@ public class ImplRotationNodeWorld implements IRotationNodeWorld {
             double newOmega = omegaGuess + deltaOmega;
             if (!Double.isNaN(newOmega)) {
                 // Apply deltaOmega to all rotation nodes.
-                applyNewOmega(startNode, newOmega, timeDelta, visitedNodes);
-            } else {
+                this.applyNewOmega(startNode, newOmega, timeDelta, visitedNodes);
+            }
+            else {
                 System.err.println(
                     "Gear Train Simulation Error, Resetting Rotation Nodes.\nOmega guess is "
                         + omegaGuess
                         + "\nDelta omega is " + deltaOmega);
-                resetGearTrain(startNode, visitedNodes);
+                this.resetGearTrain(startNode, visitedNodes);
             }
 
             // Remove the nodes we just processed from those that must be visited.
@@ -158,7 +159,7 @@ public class ImplRotationNodeWorld implements IRotationNodeWorld {
             if (visitedNodes.contains(connectedNode.getFirst())) {
                 continue;
             }
-            resetGearTrain(endNode, visitedNodes);
+            this.resetGearTrain(endNode, visitedNodes);
         }
     }
 

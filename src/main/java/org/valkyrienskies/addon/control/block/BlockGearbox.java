@@ -41,8 +41,7 @@ public class BlockGearbox extends BaseBlock implements ITileEntityProvider {
     }
 
     @Override
-    public IBlockState getStateForPlacement(World worldIn, BlockPos pos, EnumFacing facing,
-        float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer) {
+    public IBlockState getStateForPlacement(World worldIn, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer) {
         EnumFacing facingHorizontal = placer.getHorizontalFacing();
         if (!placer.isSneaking()) {
             facingHorizontal = facingHorizontal.getOpposite();
@@ -66,9 +65,7 @@ public class BlockGearbox extends BaseBlock implements ITileEntityProvider {
 
     @Override
     public int getMetaFromState(IBlockState state) {
-        int i = state.getValue(BlockHorizontal.FACING)
-            .getIndex();
-        return i;
+        return state.getValue(BlockHorizontal.FACING).getIndex();
     }
 
     @Override

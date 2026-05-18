@@ -9,7 +9,6 @@ import org.valkyrienskies.addon.control.util.BaseBlock;
 import javax.annotation.Nonnull;
 
 public class BlockShipWheel extends BaseBlock {
-
     private static final PropertyInteger modelId = PropertyInteger.create("modelid", 0, 15);
 
     public BlockShipWheel() {

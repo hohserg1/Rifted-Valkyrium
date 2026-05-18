@@ -1,15 +1,16 @@
 package org.valkyrienskies.addon.control.block.multiblocks;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import java.util.List;
 
 public interface IMultiblockSchematic {
-
     /**
      * This should generate the getStructureRelativeToCenter() list.
      */
@@ -18,7 +19,7 @@ public interface IMultiblockSchematic {
     /**
      * Should return a static immutable list that represents how this multiblock is created.
      */
-    List<BlockPosBlockPair> getStructureRelativeToCenter();
+    List<ImmutablePair<BlockPos, Block>> getStructureRelativeToCenter();
 
     /**
      * Returns the render bounding box tile entities should use while rendering this schematic.
@@ -27,13 +28,11 @@ public interface IMultiblockSchematic {
         double minX, minY, minZ, maxX, maxY, maxZ;
         minX = minY = minZ = Double.POSITIVE_INFINITY;
         maxX = maxY = maxZ = Double.NEGATIVE_INFINITY;
-        for (BlockPosBlockPair pair : getStructureRelativeToCenter()) {
-            double curX = pair.getPos()
-                .getX() + masterPos.getX();
-            double curY = pair.getPos()
-                .getY() + masterPos.getY();
-            double curZ = pair.getPos()
-                .getZ() + masterPos.getZ();
+        for (ImmutablePair<BlockPos, Block> pair : getStructureRelativeToCenter()) {
+            double curX = pair.getLeft().getX() + masterPos.getX();
+            double curY = pair.getLeft().getY() + masterPos.getY();
+            double curZ = pair.getLeft().getZ() + masterPos.getZ();
+
             minX = Math.min(curX, minX);
             minY = Math.min(curY, minY);
             minZ = Math.min(curZ, minZ);
@@ -55,28 +54,29 @@ public interface IMultiblockSchematic {
      * Returns true if the multiblock was successfully created.
      */
     default boolean attemptToCreateMultiblock(World world, BlockPos pos) {
-        if (getStructureRelativeToCenter().size() == 0) {
+        if (this.getStructureRelativeToCenter().isEmpty()) {
             throw new IllegalStateException("No structure info found in the multiblock schematic!");
         }
 
         boolean buildSuccessful = true;
-        for (BlockPosBlockPair pair : getStructureRelativeToCenter()) {
-            BlockPos realPos = pos.add(pair.getPos());
+        for (ImmutablePair<BlockPos, Block> pair : this.getStructureRelativeToCenter()) {
+            BlockPos realPos = pos.add(pair.getLeft());
             IBlockState state = world.getBlockState(realPos);
-            if (state.getBlock() != pair.getBlock()) {
-                // This rotation didn't work
+            // This rotation didn't work
+            if (state.getBlock() != pair.getRight()) {
                 buildSuccessful = false;
                 break;
-            } else {
+            }
+            else {
                 TileEntity tile = world.getTileEntity(realPos);
-                if (tile instanceof ITileEntityMultiblockPart) {
-                    ITileEntityMultiblockPart multiblockPart = (ITileEntityMultiblockPart) tile;
+                if (tile instanceof ITileEntityMultiblockPart<?, ?> multiblockPart) {
+                    // If its already a part of a multiblock then do not allow this to assemble.
                     if (multiblockPart.isPartOfAssembledMultiblock()) {
-                        // If its already a part of a multiblock then do not allow this to assemble.
                         buildSuccessful = false;
                         break;
                     }
-                } else {
+                }
+                else {
                     buildSuccessful = false;
                     break;
                 }
@@ -84,9 +84,9 @@ public interface IMultiblockSchematic {
         }
 
         if (buildSuccessful) {
-            for (BlockPosBlockPair pair : getStructureRelativeToCenter()) {
-                BlockPos realPos = pos.add(pair.getPos());
-                applyMultiblockCreation(world, realPos, pair.getPos());
+            for (ImmutablePair<BlockPos, Block> pair : getStructureRelativeToCenter()) {
+                BlockPos realPos = pos.add(pair.getLeft());
+                this.applyMultiblockCreation(world, realPos, pair.getLeft());
             }
             return true;
         }

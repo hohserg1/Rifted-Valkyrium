@@ -3,9 +3,7 @@ package org.valkyrienskies.addon.control.block.multiblocks;
 import net.minecraft.nbt.NBTTagCompound;
 import org.valkyrienskies.addon.control.nodenetwork.IForceTile;
 
-public abstract class TileEntityMultiblockPartForce<E extends IMultiblockSchematic, F extends TileEntityMultiblockPartForce> extends
-    TileEntityMultiblockPart<E, F> implements IForceTile {
-
+public abstract class TileEntityMultiblockPartForce<E extends IMultiblockSchematic, F extends TileEntityMultiblockPartForce<?, ?>> extends TileEntityMultiblockPart<E, F> implements IForceTile {
     private double thrustMultiplierGoal;
     private double maxThrust;
 
@@ -17,7 +15,7 @@ public abstract class TileEntityMultiblockPartForce<E extends IMultiblockSchemat
 
     @Override
     public double getMaxThrust() {
-        return maxThrust;
+        return this.maxThrust;
     }
 
     @Override
@@ -27,7 +25,7 @@ public abstract class TileEntityMultiblockPartForce<E extends IMultiblockSchemat
 
     @Override
     public double getThrustMultiplierGoal() {
-        return thrustMultiplierGoal;
+        return this.thrustMultiplierGoal;
     }
 
     @Override
@@ -38,8 +36,8 @@ public abstract class TileEntityMultiblockPartForce<E extends IMultiblockSchemat
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         NBTTagCompound toReturn = super.writeToNBT(compound);
-        toReturn.setDouble("thrustMultiplierGoal", thrustMultiplierGoal);
-        toReturn.setDouble("maxThrust", maxThrust);
+        toReturn.setDouble("thrustMultiplierGoal", this.thrustMultiplierGoal);
+        toReturn.setDouble("maxThrust", this.maxThrust);
         return toReturn;
     }
 
@@ -49,5 +47,4 @@ public abstract class TileEntityMultiblockPartForce<E extends IMultiblockSchemat
         this.thrustMultiplierGoal = compound.getDouble("thrustMultiplierGoal");
         this.maxThrust = compound.getDouble("maxThrust");
     }
-
 }

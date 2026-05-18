@@ -64,14 +64,12 @@ public class VSGuiButtonMessage implements IMessage {
             mainThread.addScheduledTask(() -> {
                 World playerWorld = ctx.getServerHandler().player.world;
                 TileEntity tileEntity = playerWorld.getTileEntity(message.getTileEntityPos());
-                if (tileEntity == null) {
-                    // Nothing there, ignore this message
-                    return;
-                }
+                // Nothing there, ignore this message
+                if (tileEntity == null)  return;
                 int buttonId = message.getButtonId();
                 // Tell the tile entity that this player tried pressing the given button.
-                if (tileEntity instanceof IVSTileGui) {
-                    ((IVSTileGui) tileEntity).onButtonPress(buttonId, ctx.getServerHandler().player);
+                if (tileEntity instanceof IVSTileGui ivsTileGui) {
+                    ivsTileGui.onButtonPress(buttonId, ctx.getServerHandler().player);
                 }
             });
             return null;

@@ -50,18 +50,14 @@ public abstract class BlockAirshipEngineLore extends BlockAirshipEngine {
     }
 
     @Override
-    public Vector3dc getCustomBlockForcePosition(World world, BlockPos pos, IBlockState state,
-                                                 PhysicsObject physicsObject, double secondsToApply) {
-        TileEntityPropellerEngine engineTile = (TileEntityPropellerEngine) physicsObject.getShipTile(pos);
-        if (engineTile != null) {
-            Vector3dc forceOutputNormal = engineTile.getForceOutputNormal(secondsToApply,
-                physicsObject);
-            return new Vector3d(pos.getX() + .5D - forceOutputNormal.x() * .75,
-                pos.getY() + .5D - forceOutputNormal.y() * .75,
-                pos.getZ() + .5D - forceOutputNormal.z() * .75);
-        } else {
-            return null;
-        }
+    public Vector3dc getCustomBlockForcePosition(World world, BlockPos pos, IBlockState state, PhysicsObject physicsObject, double secondsToApply) {
+        if (!(physicsObject.getShipTile(pos) instanceof TileEntityPropellerEngine tilePropellerEngine)) return null;
+        Vector3dc forceOutputNormal = tilePropellerEngine.getForceOutputNormal(secondsToApply, physicsObject);
+        return new Vector3d(
+                pos.getX() + 0.5D - forceOutputNormal.x() * 0.75D,
+                pos.getY() + 0.5D - forceOutputNormal.y() * 0.75D,
+                pos.getZ() + 0.5D - forceOutputNormal.z() * 0.75D
+        );
     }
 
 }
