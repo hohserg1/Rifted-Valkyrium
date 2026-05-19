@@ -103,7 +103,7 @@ public class ImplRotationNodeWorld implements IRotationNodeWorld {
 
         processQueuedTasks();
 
-        List<IRotationNode> nodesToVisit = new ArrayList<>(posToNodeMap.values());
+        List<IRotationNode> nodesToVisit = new ArrayList<>(this.posToNodeMap.values());
         Collections.shuffle(nodesToVisit);
 
         // Very naive inefficient algorithm, but I think it works pretty well.
