@@ -37,7 +37,7 @@ public class PhysicsCalculations {
     private final WorldPhysicsCollider worldCollision;
     private final WorldWaterCollider worldWaterCollider;
 
-    public boolean actAsArchimedes = false;
+    public boolean actAsArchimedes = false; //omaga archimedes ships reference
     private Vector3dc physCenterOfMass;
     private Vector3d torque;
     private Vector3d force;

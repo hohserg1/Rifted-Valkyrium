@@ -2,26 +2,31 @@ package org.valkyrienskies.mod.common.tileentity;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
 import org.joml.AxisAngle4d;
 import org.joml.Matrix3d;
 import org.joml.Vector3d;
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod;
 import org.valkyrienskies.mod.common.block.BlockCaptainsChair;
+import org.valkyrienskies.mod.common.physics.PhysicsCalculations;
 import org.valkyrienskies.mod.common.piloting.PilotControls;
 import org.valkyrienskies.mod.common.piloting.PilotControlsMessage;
 import org.valkyrienskies.mod.common.ships.ship_world.PhysicsObject;
 import valkyrienwarfare.api.TransformType;
 
-public class TileEntityCaptainsChair extends TileEntityPilotableImpl {
+public class TileEntityCaptainsChair extends TileEntityPilotableImpl implements ITickable {
+    private boolean maintainYDisplacement;
+
     public void processControlMessage(PilotControlsMessage message, EntityPlayerMP sender) {
-        IBlockState blockState = getWorld().getBlockState(getPos());
+        IBlockState blockState = this.getWorld().getBlockState(getPos());
         if (blockState.getBlock() != ValkyrienSkiesMod.INSTANCE.captainsChair) {
             this.setPilotEntity(null);
             return;
         }
 
-        PhysicsObject physicsObject = getParentPhysicsEntity();
+        PhysicsObject physicsObject = this.getParentPhysicsEntity();
         if (physicsObject == null) return;
 
         this.processCalculationsForControlMessageAndApplyCalculations(
@@ -31,14 +36,60 @@ public class TileEntityCaptainsChair extends TileEntityPilotableImpl {
 
     @Override
     public final void onStartTileUsage() {
-        getParentPhysicsEntity().getPhysicsCalculations().actAsArchimedes = true;
+        this.maintainYDisplacement = true;
+        this.markDirty();
+        PhysicsObject physicsObject = this.getParentPhysicsEntity();
+        if (physicsObject != null) {
+            physicsObject.getPhysicsCalculations().actAsArchimedes = true;
+        }
     }
 
     @Override
     public final void onStopTileUsage() {
-        // Sanity check, sometimes we can be piloting something that's been destroyed so there's nothing to change physics on.
-        if (getParentPhysicsEntity() != null) {
-            getParentPhysicsEntity().getPhysicsCalculations().actAsArchimedes = false;
+        this.maintainYDisplacement = true;
+        this.markDirty();
+        this.applyYDisplacementHold();
+    }
+
+    @Override
+    public void update() {
+        if (this.getWorld().isRemote || !this.maintainYDisplacement || this.getPilotEntity() != null) return;
+        this.applyYDisplacementHold();
+    }
+
+    /**
+     * This ensures that the ship this chair is attached to maintains its y position when in the air.
+     * Must be ticked and upon dismounting.
+     * */
+    private void applyYDisplacementHold() {
+        PhysicsObject physicsObject = this.getParentPhysicsEntity();
+        if (physicsObject != null) {
+            PhysicsCalculations physicsCalculations = physicsObject.getPhysicsCalculations();
+            physicsCalculations.actAsArchimedes = true;
+            physicsCalculations.getLinearVelocity().y = 0;
+        }
+    }
+
+    @Override
+    public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+        NBTTagCompound toReturn = super.writeToNBT(compound);
+        compound.setBoolean("maintainYDisplacement", this.maintainYDisplacement);
+        return toReturn;
+    }
+
+    @Override
+    public void readFromNBT(NBTTagCompound compound) {
+        super.readFromNBT(compound);
+        this.maintainYDisplacement = compound.getBoolean("maintainYDisplacement");
+    }
+
+    public void onBlockBroken(IBlockState state) {
+        this.maintainYDisplacement = false;
+        this.markDirty();
+
+        PhysicsObject physicsObject = this.getParentPhysicsEntity();
+        if (physicsObject != null) {
+            physicsObject.getPhysicsCalculations().actAsArchimedes = false;
         }
     }
 
@@ -85,10 +136,10 @@ public class TileEntityCaptainsChair extends TileEntityPilotableImpl {
             .transformDirection(shipUp, TransformType.SUBSPACE_TO_GLOBAL);
 
         if (PilotControls.controlIsPressed(message.getUsedControls(), PilotControls.UP)) {
-            idealLinearVelocity.add(upDirection.mul(.5, new Vector3d()));
+            idealLinearVelocity.add(upDirection.mul(0.5, new Vector3d()));
         }
         if (PilotControls.controlIsPressed(message.getUsedControls(), PilotControls.DOWN)) {
-            idealLinearVelocity.add(downDirection.mul(.5, new Vector3d()));
+            idealLinearVelocity.add(downDirection.mul(0.5, new Vector3d()));
         }
 
         double sidePitch = 0;
@@ -138,5 +189,4 @@ public class TileEntityCaptainsChair extends TileEntityPilotableImpl {
         controlledShip.getPhysicsCalculations().getLinearVelocity().sub(linearMomentumDif);
         controlledShip.getPhysicsCalculations().getAngularVelocity().sub(angularVelocityDif);
     }
-
 }

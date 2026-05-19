@@ -88,6 +88,15 @@ public class BlockCaptainsChair extends BlockPilotableBasic {
     }
 
     @Override
+    public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
+        TileEntity captainsChair = worldIn.getTileEntity(pos);
+        if (captainsChair instanceof TileEntityCaptainsChair && !captainsChair.isInvalid()) {
+            ((TileEntityCaptainsChair) captainsChair).onBlockBroken(state);
+        }
+        super.breakBlock(worldIn, pos, state);
+    }
+
+    @Override
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, @Nullable World player,
         List<String> itemInformation, ITooltipFlag advanced) {

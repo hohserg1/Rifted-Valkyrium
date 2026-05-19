@@ -121,15 +121,11 @@ public class TileEntityLiftLever extends TileEntityControlNodeImpl {
                 for (GraphObject object : thisNode.getGraph().getObjects()) {
                     VSNode_TileEntity otherNode = (VSNode_TileEntity) object;
                     TileEntity tile = otherNode.getParentTile();
-                    if (tile instanceof TileEntityValkyriumCompressorPart) {
-                        BlockPos masterPos = ((TileEntityValkyriumCompressorPart) tile)
-                            .getMultiblockOrigin();
-                        TileEntityValkyriumCompressorPart masterTile = (TileEntityValkyriumCompressorPart) tile
-                            .getWorld().getTileEntity(masterPos);
+                    if (tile instanceof TileEntityValkyriumCompressorPart tileCompressorPart) {
+                        BlockPos masterPos = tileCompressorPart.getMultiblockOrigin();
+                        TileEntityValkyriumCompressorPart masterTile = (TileEntityValkyriumCompressorPart) tileCompressorPart.getWorld().getTileEntity(masterPos);
                         // This is a transient problem that only occurs during world loading.
-                        if (masterTile != null) {
-                            masterTile.setThrustMultiplierGoal(multiplier);
-                        }
+                        if (masterTile != null) masterTile.setThrustMultiplierGoal(multiplier);
                     }
                 }
             }

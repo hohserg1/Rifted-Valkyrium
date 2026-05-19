@@ -24,7 +24,6 @@ public class TileEntityGearbox extends TileEntityBasicRotationNodeTile {
 
     public TileEntityGearbox(EnumFacing inputFacing) {
         super(GEARBOX_SORTING_PRIORITY);
-        System.out.println("init facing: "+inputFacing);
         this.inputFacing = inputFacing;
         this.outputRatio = Optional.of(1D);
         this.connectedSidesRatios = new Optional[]{
@@ -51,7 +50,6 @@ public class TileEntityGearbox extends TileEntityBasicRotationNodeTile {
     }
 
     public void setInputFacing(EnumFacing inputFacing) {
-        System.out.println("(setInputFacing) new facing: "+inputFacing);
         this.inputFacing = inputFacing;
         this.updateRotationNodeRatios();
     }
@@ -83,7 +81,6 @@ public class TileEntityGearbox extends TileEntityBasicRotationNodeTile {
         super.readFromNBT(compound);
         if (compound.hasKey("inputFacing")) {
             this.inputFacing = EnumFacing.values()[compound.getByte("inputFacing")];
-            System.out.println("(readFromNBT) new facing: "+this.inputFacing);
         }
         if (compound.hasKey("hasOutput") && compound.getBoolean("hasOutput") && compound.hasKey("outputRatio")) {
             this.outputRatio = Optional.of(compound.getDouble("outputRatio"));
