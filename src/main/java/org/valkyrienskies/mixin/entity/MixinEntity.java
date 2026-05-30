@@ -9,7 +9,6 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.joml.Vector3d;
-import org.joml.Vector3dc;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
@@ -17,21 +16,19 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.valkyrienskies.mod.common.entity.EntityShipMovementData;
+import org.valkyrienskies.mod.common.capability.VSCapabilityRegistry;
+import org.valkyrienskies.mod.common.capability.entity_ship_draggable.IEntityShipDraggable;
 import org.valkyrienskies.mod.common.ships.ShipData;
-import org.valkyrienskies.mod.common.ships.entity_interaction.IDraggable;
 import org.valkyrienskies.mod.common.ships.ship_world.PhysicsObject;
 import org.valkyrienskies.mod.common.ships.entity_interaction.EntityShipMountData;
 import org.valkyrienskies.mod.common.util.JOML;
 import org.valkyrienskies.mod.common.util.ValkyrienUtils;
 import valkyrienwarfare.api.TransformType;
 
-import javax.annotation.Nonnull;
 import java.util.Optional;
-import java.util.UUID;
 
 @Mixin(Entity.class)
-public abstract class MixinEntity implements IDraggable {
+public abstract class MixinEntity {
 
     private final Entity thisAsEntity = Entity.class.cast(this);
     @Shadow
@@ -52,10 +49,6 @@ public abstract class MixinEntity implements IDraggable {
     public double posZ;
 
     private Vector3d searchVector = null;
-    
-    private EntityShipMovementData entityShipMovementData = new EntityShipMovementData(null, 0, 0, new Vector3d(), 0);
-
-    private int ticksInAirPocket = 0;
 
     /**
      * This is easier to have as an overwrite because there's less laggy hackery to be done then :P
@@ -252,41 +245,17 @@ public abstract class MixinEntity implements IDraggable {
         }
     }
 
-    @Nonnull
-    @Override
-    public EntityShipMovementData getEntityShipMovementData() {
-        return entityShipMovementData;
-    }
-
-    @Override
-    public void setEntityShipMovementData(EntityShipMovementData entityShipMovementData) {
-        this.entityShipMovementData = entityShipMovementData;
-    }
-
-    @Override
-    public boolean getInAirPocket() {
-        return ticksInAirPocket > 0;
-    }
-
-    @Override
-    public void setTicksAirPocket(int ticksInAirPocket) {
-        this.ticksInAirPocket = ticksInAirPocket;
-    }
-
-    @Override
-    public void decrementTicksAirPocket() {
-        this.ticksInAirPocket--;
-    }
-
     /**
      * This mixin removes the water slowdown effect when the player is in an air bubble.
      */
     @Inject(method = "handleWaterMovement", at = @At("HEAD"), cancellable = true)
     private void handleWaterMovement(CallbackInfoReturnable<Boolean> cir) {
-        if (getInAirPocket()) {
-            this.inWater = false;
-            cir.setReturnValue(false);
-        }
+        Entity thisEntity = (Entity) ((Object) this);
+        IEntityShipDraggable entityShipDraggable = thisEntity.getCapability(VSCapabilityRegistry.VS_ENTITY_SHIP_DRAGGABLE, null);
+        if (entityShipDraggable == null || !entityShipDraggable.getInAirPocket()) return;
+
+        this.inWater = false;
+        cir.setReturnValue(false);
     }
 
     /**
@@ -294,9 +263,12 @@ public abstract class MixinEntity implements IDraggable {
      */
     @Inject(method = "isInsideOfMaterial", at = @At("HEAD"), cancellable = true)
     private void onPreIsInsideOfMaterial(Material materialIn, CallbackInfoReturnable<Boolean> cir) {
-        if (materialIn == Material.WATER && getInAirPocket()) {
-            cir.setReturnValue(false);
-        }
+        Entity thisEntity = (Entity) ((Object) this);
+        IEntityShipDraggable entityShipDraggable = thisEntity.getCapability(VSCapabilityRegistry.VS_ENTITY_SHIP_DRAGGABLE, null);
+        if (entityShipDraggable == null) return;
+
+        if (materialIn != Material.WATER || !entityShipDraggable.getInAirPocket()) return;
+        cir.setReturnValue(false);
     }
 
     /**
@@ -304,8 +276,10 @@ public abstract class MixinEntity implements IDraggable {
      */
     @Inject(method = "isInLava", at = @At("HEAD"), cancellable = true)
     private void onPreIsInLava(CallbackInfoReturnable<Boolean> cir) {
-        if (getInAirPocket()) {
-            cir.setReturnValue(false);
-        }
+        Entity thisEntity = (Entity) ((Object) this);
+        IEntityShipDraggable entityShipDraggable = thisEntity.getCapability(VSCapabilityRegistry.VS_ENTITY_SHIP_DRAGGABLE, null);
+        if (entityShipDraggable == null || !entityShipDraggable.getInAirPocket()) return;
+
+        cir.setReturnValue(false);
     }
 }

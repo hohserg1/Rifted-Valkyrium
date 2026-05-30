@@ -1,4 +1,5 @@
 package org.valkyrienskies.mod.common.ships.entity_interaction;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockHorizontal;
 import net.minecraft.block.BlockSlime;
@@ -29,7 +30,6 @@ import org.valkyrienskies.mod.common.collision.PhysPolygonCollider;
 import org.valkyrienskies.mod.common.collision.Polygon;
 import org.valkyrienskies.mod.common.collision.ShipPolygon;
 import org.valkyrienskies.mod.common.entity.EntityMountable;
-import org.valkyrienskies.mod.common.entity.EntityShipMovementData;
 import org.valkyrienskies.mod.common.ships.ShipData;
 import org.valkyrienskies.mod.common.ships.ship_transform.ShipTransform;
 import org.valkyrienskies.mod.common.ships.ship_world.PhysicsObject;
@@ -64,8 +64,6 @@ public class EntityCollisionInjector {
         List<Polygon> colPolys = getCollidingPolygonsAndDoBlockCols(entity, velocity);
 
         PhysicsObject worldBelow = null;
-        IDraggable draggable = EntityDraggable.getDraggableFromEntity(entity);
-        final EntityShipMovementData lastTickEntityShipMovementData = draggable.getEntityShipMovementData();
 
         Vector3d total = new Vector3d();
 

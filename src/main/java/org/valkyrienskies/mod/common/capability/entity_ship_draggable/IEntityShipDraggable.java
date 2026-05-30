@@ -1,12 +1,12 @@
-package org.valkyrienskies.mod.common.ships.entity_interaction;
+package org.valkyrienskies.mod.common.capability.entity_ship_draggable;
 
 import org.valkyrienskies.mod.common.entity.EntityShipMovementData;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public interface IDraggable {
-    @Nonnull
+public interface IEntityShipDraggable {
+    @Nullable
     EntityShipMovementData getEntityShipMovementData();
 
     void setEntityShipMovementData(@Nullable EntityShipMovementData entityShipMovementData);

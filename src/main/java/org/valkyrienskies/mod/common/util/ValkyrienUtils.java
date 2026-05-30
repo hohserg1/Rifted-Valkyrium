@@ -18,6 +18,7 @@ import org.joml.Vector3d;
 import org.joml.Vector3dc;
 import org.valkyrienskies.mod.common.capability.VSCapabilityRegistry;
 import org.valkyrienskies.mod.common.capability.VSWorldDataCapability;
+import org.valkyrienskies.mod.common.capability.entity_ship_draggable.IEntityShipDraggable;
 import org.valkyrienskies.mod.common.capability.ship_world.IShipWorld;
 import org.valkyrienskies.mod.common.collision.Polygon;
 import org.valkyrienskies.mod.common.entity.EntityMountable;
@@ -28,7 +29,6 @@ import org.valkyrienskies.mod.common.ships.block_relocation.BlockFinder;
 import org.valkyrienskies.mod.common.ships.chunk_claims.ShipChunkAllocator;
 import org.valkyrienskies.mod.common.ships.chunk_claims.VSChunkClaim;
 import org.valkyrienskies.mod.common.ships.entity_interaction.EntityShipMountData;
-import org.valkyrienskies.mod.common.ships.entity_interaction.IDraggable;
 import org.valkyrienskies.mod.common.ships.ship_transform.CoordinateSpaceType;
 import org.valkyrienskies.mod.common.ships.ship_transform.ShipTransform;
 import org.valkyrienskies.mod.common.ships.ship_world.IPhysObjectWorld;
@@ -307,7 +307,8 @@ public final class ValkyrienUtils {
 
             entity.setPosition(entityPos.x, entityPos.y, entityPos.z);
             entity.setEntityBoundingBox(newBBScaled);
-        } else {
+        }
+        else {
             // Just use the regular bounding box
             entity.setPosition(entityPos.x, entityPos.y, entityPos.z);
         }
@@ -323,13 +324,17 @@ public final class ValkyrienUtils {
 
     @Nullable
     public static ShipData getLastShipTouchedByEntity(final Entity entity) {
-        final IDraggable asDraggable = IDraggable.class.cast(entity);
-        return asDraggable.getEntityShipMovementData().getLastTouchedShip();
+        IEntityShipDraggable draggable = entity.getCapability(VSCapabilityRegistry.VS_ENTITY_SHIP_DRAGGABLE, null);
+        if (draggable == null || draggable.getEntityShipMovementData() == null) return null;
+        return draggable.getEntityShipMovementData().getLastTouchedShip();
     }
 
     public static @NotNull EntityShipMovementData getEntityShipMovementDataFor(final Entity entity) {
-        final IDraggable asDraggable = IDraggable.class.cast(entity);
-        return asDraggable.getEntityShipMovementData();
+        IEntityShipDraggable draggable = entity.getCapability(VSCapabilityRegistry.VS_ENTITY_SHIP_DRAGGABLE, null);
+        if (draggable == null || draggable.getEntityShipMovementData() == null) {
+            throw new RuntimeException("IEntityShipDraggable.getEntityShipMovementData() is not expected to be null!");
+        }
+        return draggable.getEntityShipMovementData();
     }
 
 }

@@ -11,6 +11,8 @@ import net.minecraft.world.World;
 import org.joml.Matrix4d;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
+import org.valkyrienskies.mod.common.capability.VSCapabilityRegistry;
+import org.valkyrienskies.mod.common.capability.entity_ship_draggable.IEntityShipDraggable;
 import org.valkyrienskies.mod.common.config.VSConfig;
 import org.valkyrienskies.mod.common.entity.EntityShipMovementData;
 import org.valkyrienskies.mod.common.ships.ShipData;
@@ -45,9 +47,12 @@ public class EntityDraggable {
      * Adds the ship below velocity to entity.
      */
     private static void addEntityVelocityFromShipBelow(final Entity entity) {
-        final IDraggable draggable = EntityDraggable.getDraggableFromEntity(entity);
+        IEntityShipDraggable draggable = entity.getCapability(VSCapabilityRegistry.VS_ENTITY_SHIP_DRAGGABLE, null);
+        if (draggable == null) return;
+
         final EntityShipMountData mountData = ValkyrienUtils.getMountedShipAndPos(entity);
         final EntityShipMovementData oldEntityShipMovementData = draggable.getEntityShipMovementData();
+        if (oldEntityShipMovementData == null) return;
 
         final ShipData lastShipTouchedPlayer = oldEntityShipMovementData.getLastTouchedShip();
         final int oldTicksSinceTouchedShip = oldEntityShipMovementData.getTicksSinceTouchedShip();
@@ -61,25 +66,25 @@ public class EntityDraggable {
                         oldEntityShipMovementData
                                 .withAddedLinearVelocity(new Vector3d())
                                 .withAddedYawVelocity(0));
-            } else {
-                if (entity instanceof EntityPlayer) {
-                    EntityPlayer player = (EntityPlayer) entity;
-                    if (player.isCreative() && player.capabilities.isFlying) {
-                        // If the player is flying, then slow down their added velocity significantly every tick
-                        final Vector3dc newVelocityAdded = oldVelocityAdded.mul(.95, new Vector3d());
-                        final double newYawVelocityAdded = oldYawVelocityAdded * .95 * .95;
-                        final EntityShipMovementData newMovementData = oldEntityShipMovementData.withAddedLinearVelocity(newVelocityAdded).withAddedYawVelocity(newYawVelocityAdded);
-                        draggable.setEntityShipMovementData(newMovementData);
-                    } else {
-                        // Otherwise only slow down their added velocity slightly every tick
-                        final Vector3dc newVelocityAdded = oldVelocityAdded.mul(.99, new Vector3d());
-                        final double newYawVelocityAdded = oldYawVelocityAdded * .95;
-                        final EntityShipMovementData newMovementData = oldEntityShipMovementData.withAddedLinearVelocity(newVelocityAdded).withAddedYawVelocity(newYawVelocityAdded);
-                        draggable.setEntityShipMovementData(newMovementData);
-                    }
+            }
+            else if (entity instanceof EntityPlayer player) {
+                if (player.isCreative() && player.capabilities.isFlying) {
+                    // If the player is flying, then slow down their added velocity significantly every tick
+                    final Vector3dc newVelocityAdded = oldVelocityAdded.mul(.95, new Vector3d());
+                    final double newYawVelocityAdded = oldYawVelocityAdded * .95 * .95;
+                    final EntityShipMovementData newMovementData = oldEntityShipMovementData.withAddedLinearVelocity(newVelocityAdded).withAddedYawVelocity(newYawVelocityAdded);
+                    draggable.setEntityShipMovementData(newMovementData);
+                }
+                else {
+                    // Otherwise only slow down their added velocity slightly every tick
+                    final Vector3dc newVelocityAdded = oldVelocityAdded.mul(.99, new Vector3d());
+                    final double newYawVelocityAdded = oldYawVelocityAdded * .95;
+                    final EntityShipMovementData newMovementData = oldEntityShipMovementData.withAddedLinearVelocity(newVelocityAdded).withAddedYawVelocity(newYawVelocityAdded);
+                    draggable.setEntityShipMovementData(newMovementData);
                 }
             }
-        } else {
+        }
+        else {
             final float rotYaw = entity.rotationYaw;
             final float rotPitch = entity.rotationPitch;
             final float prevYaw = entity.prevRotationYaw;
@@ -176,20 +181,6 @@ public class EntityDraggable {
             entity.setRotationYawHead((float) (entity.getRotationYawHead() + addedYawVelocity));
             entity.rotationYaw += addedYawVelocity;
         }
-    }
-
-    public static IDraggable getDraggableFromEntity(Entity entity) {
-        if (entity == null) {
-            return null;
-        }
-        return (IDraggable) entity;
-    }
-
-    public static Entity getEntityFromDraggable(IDraggable draggable) {
-        if (draggable == null) {
-            return null;
-        }
-        return (Entity) draggable;
     }
 
     /**

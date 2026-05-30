@@ -17,13 +17,15 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.valkyrienskies.mod.common.capability.VSCapabilityRegistry;
+import org.valkyrienskies.mod.common.capability.entity_ship_draggable.IEntityShipDraggable;
 import org.valkyrienskies.mod.common.config.VSConfig;
+import org.valkyrienskies.mod.common.entity.EntityShipMovementData;
 import org.valkyrienskies.mod.common.network.IHasPlayerMovementData;
 import org.valkyrienskies.mod.common.network.PlayerMovementData;
 import org.valkyrienskies.mod.common.ships.QueryableShipData;
 import org.valkyrienskies.mod.common.ships.ShipData;
 import org.valkyrienskies.mod.common.ships.chunk_claims.ShipChunkAllocator;
-import org.valkyrienskies.mod.common.ships.entity_interaction.IDraggable;
 import org.valkyrienskies.mod.common.ships.ship_transform.ShipTransform;
 import org.valkyrienskies.mod.common.ships.ship_world.PhysicsObject;
 import org.valkyrienskies.mod.common.util.VSMath;
@@ -149,15 +151,19 @@ public abstract class MixinNetHandlerPlayServer {
 
             if (ticksSinceTouchedLastShip > 40) {
                 // If the player hasn't touched the ship in over 40 ticks, then ignore its coordinates relative to that ship.
-                final IDraggable playerAsDraggable = IDraggable.class.cast(this.player);
-                playerAsDraggable.setEntityShipMovementData(
-                        playerAsDraggable.getEntityShipMovementData()
-                                .withLastTouchedShip(null)
-                                .withAddedLinearVelocity(new Vector3d())
-                                .withAddedYawVelocity(0)
-                                .withTicksPartOfGround(addedPlayerMovementData.getTicksPartOfGround())
-                                .withTicksSinceTouchedShip(ticksSinceTouchedLastShip)
-                );
+                IEntityShipDraggable entityShipDraggable = this.player.getCapability(VSCapabilityRegistry.VS_ENTITY_SHIP_DRAGGABLE, null);
+                if (entityShipDraggable != null) {
+                    EntityShipMovementData shipMovementData = entityShipDraggable.getEntityShipMovementData();
+                    if (shipMovementData != null) {
+                        entityShipDraggable.setEntityShipMovementData(
+                                shipMovementData.withLastTouchedShip(null)
+                                        .withAddedLinearVelocity(new Vector3d())
+                                        .withAddedYawVelocity(0)
+                                        .withTicksPartOfGround(addedPlayerMovementData.getTicksPartOfGround())
+                                        .withTicksSinceTouchedShip(ticksSinceTouchedLastShip)
+                        );
+                    }
+                }
                 return;
             }
 
@@ -212,16 +218,19 @@ public abstract class MixinNetHandlerPlayServer {
             this.player.motionZ = packetPlayer.z - this.firstGoodZ;
 
             // Update the player draggable
-            final IDraggable playerAsDraggable = IDraggable.class.cast(this.player);
-            playerAsDraggable.setEntityShipMovementData(
-                    playerAsDraggable.getEntityShipMovementData()
-                            .withLastTouchedShip(lastTouchedShip)
-                            .withAddedLinearVelocity(new Vector3d())
-                            .withAddedYawVelocity(0)
-                            .withTicksPartOfGround(ticksPartOfGround)
-                            .withTicksSinceTouchedShip(ticksSinceTouchedLastShip)
-            );
+            IEntityShipDraggable entityShipDraggable = this.player.getCapability(VSCapabilityRegistry.VS_ENTITY_SHIP_DRAGGABLE, null);
+            if (entityShipDraggable != null) {
+                EntityShipMovementData shipMovementData = entityShipDraggable.getEntityShipMovementData();
+                if (shipMovementData != null) {
+                    entityShipDraggable.setEntityShipMovementData(
+                            shipMovementData.withLastTouchedShip(lastTouchedShip)
+                                    .withAddedLinearVelocity(new Vector3d())
+                                    .withAddedYawVelocity(0)
+                                    .withTicksPartOfGround(ticksPartOfGround)
+                                    .withTicksSinceTouchedShip(ticksSinceTouchedLastShip)
+                    );
+                }
+            }
         }
     }
-
 }

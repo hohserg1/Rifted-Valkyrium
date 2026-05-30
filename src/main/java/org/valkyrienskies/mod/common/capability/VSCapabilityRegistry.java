@@ -13,6 +13,8 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod;
 import org.valkyrienskies.mod.common.capability.entity_backup.ICapabilityEntityBackup;
 import org.valkyrienskies.mod.common.capability.entity_backup.ImplCapabilityEntityBackup;
+import org.valkyrienskies.mod.common.capability.entity_ship_draggable.IEntityShipDraggable;
+import org.valkyrienskies.mod.common.capability.entity_ship_draggable.ImplCapabilityEntityShipDraggable;
 import org.valkyrienskies.mod.common.capability.framework.VSDefaultCapabilityProvider;
 import org.valkyrienskies.mod.common.capability.framework.VSDefaultCapabilityProviderTransient;
 import org.valkyrienskies.mod.common.capability.framework.VSDefaultCapabilityStorage;
@@ -38,6 +40,9 @@ public class VSCapabilityRegistry {
     @CapabilityInject(IShipPilot.class)
     public static final Capability<IShipPilot> VS_SHIP_PILOT = getNull();
 
+    @CapabilityInject(IEntityShipDraggable.class)
+    public static final Capability<IEntityShipDraggable> VS_ENTITY_SHIP_DRAGGABLE = getNull();
+
     @SubscribeEvent
     public static void attachWorldCapabilities(AttachCapabilitiesEvent<World> event) {
         event.addCapability(
@@ -56,6 +61,11 @@ public class VSCapabilityRegistry {
         event.addCapability(
                 new ResourceLocation(ValkyrienSkiesMod.MOD_ID, "entity_backup_capability"),
                 new VSDefaultCapabilityProviderTransient<>(VS_ENTITY_BACKUP)
+        );
+
+        event.addCapability(
+                new ResourceLocation(ValkyrienSkiesMod.MOD_ID, "entity_ship_draggable_capability"),
+                new VSDefaultCapabilityProviderTransient<>(VS_ENTITY_SHIP_DRAGGABLE)
         );
 
         if (event.getObject() instanceof EntityPlayer) {
@@ -89,6 +99,12 @@ public class VSCapabilityRegistry {
                 IShipPilot.class,
                 new VSDefaultCapabilityTransientStorage<>(),
                 ImplCapabilityShipPilot::new
+        );
+
+        CapabilityManager.INSTANCE.register(
+                IEntityShipDraggable.class,
+                new VSDefaultCapabilityTransientStorage<>(),
+                ImplCapabilityEntityShipDraggable::new
         );
     }
 

@@ -25,13 +25,13 @@ import org.joml.Vector3dc;
 import org.lwjgl.opengl.GL11;
 import org.valkyrienskies.mod.client.render.GibsModelRegistry;
 import org.valkyrienskies.mod.common.capability.VSCapabilityRegistry;
+import org.valkyrienskies.mod.common.capability.entity_ship_draggable.IEntityShipDraggable;
 import org.valkyrienskies.mod.common.capability.ship_world.IShipWorld;
 import org.valkyrienskies.mod.common.config.VSConfig;
 import org.valkyrienskies.mod.common.entity.EntityShipMovementData;
 import org.valkyrienskies.mod.common.ships.QueryableShipData;
 import org.valkyrienskies.mod.common.ships.ShipData;
 import org.valkyrienskies.mod.common.ships.entity_interaction.EntityDraggable;
-import org.valkyrienskies.mod.common.ships.entity_interaction.IDraggable;
 import org.valkyrienskies.mod.common.ships.ship_transform.ShipTransform;
 import org.valkyrienskies.mod.common.ships.ship_world.IPhysObjectWorld;
 import org.valkyrienskies.mod.common.ships.ship_world.PhysicsObject;
@@ -73,7 +73,8 @@ public class EventsClient {
 
                 // Reset the air pocket status of all entities
                 for (final Entity entity : world.loadedEntityList) {
-                    final IDraggable draggable = (IDraggable) entity;
+                    IEntityShipDraggable draggable = entity.getCapability(VSCapabilityRegistry.VS_ENTITY_SHIP_DRAGGABLE, null);
+                    if (draggable == null) continue;
                     draggable.decrementTicksAirPocket();
                 }
 
@@ -210,8 +211,12 @@ public class EventsClient {
                             entityShipMovementData.getLastTouchedShip().getUuid()
                     );
                     if (shipPhysicsObject == null) {
-                        // This ship doesn't exist anymore, just remove it.
-                        ((IDraggable) entity).setEntityShipMovementData(entityShipMovementData.withLastTouchedShip(null));
+                        //get draggable information
+                        IEntityShipDraggable draggable = entity.getCapability(VSCapabilityRegistry.VS_ENTITY_SHIP_DRAGGABLE, null);
+                        if (draggable == null) continue;
+
+                        //remove ship movement data once the ship is gone
+                        draggable.setEntityShipMovementData(entityShipMovementData.withLastTouchedShip(null));
                         continue;
                     }
                     final ShipTransform prevTickTransform = shipPhysicsObject.getPrevTickShipTransform();

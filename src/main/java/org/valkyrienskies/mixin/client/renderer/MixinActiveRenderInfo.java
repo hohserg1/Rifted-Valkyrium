@@ -9,16 +9,17 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.valkyrienskies.mod.common.ships.entity_interaction.IDraggable;
+import org.valkyrienskies.mod.common.capability.VSCapabilityRegistry;
+import org.valkyrienskies.mod.common.capability.entity_ship_draggable.IEntityShipDraggable;
 
 @Mixin(ActiveRenderInfo.class)
 public class MixinActiveRenderInfo {
 
     @Inject(method = "getBlockStateAtEntityViewpoint", at = @At("HEAD"), cancellable = true)
     private static void onGetBlockStateAtEntityViewpoint(World worldIn, Entity entityIn, float p_186703_2_, CallbackInfoReturnable<IBlockState> cir) {
-        final IDraggable draggable = (IDraggable) entityIn;
-        if (draggable.getInAirPocket()) {
-            cir.setReturnValue(Blocks.AIR.getDefaultState());
-        }
+        IEntityShipDraggable entityShipDraggable = entityIn.getCapability(VSCapabilityRegistry.VS_ENTITY_SHIP_DRAGGABLE, null);
+        if (entityShipDraggable == null || !entityShipDraggable.getInAirPocket()) return;
+
+        cir.setReturnValue(Blocks.AIR.getDefaultState());
     }
 }

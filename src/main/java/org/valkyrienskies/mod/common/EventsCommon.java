@@ -35,11 +35,11 @@ import net.minecraftforge.fml.relauncher.Side;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 import org.valkyrienskies.mod.common.capability.VSCapabilityRegistry;
+import org.valkyrienskies.mod.common.capability.entity_ship_draggable.IEntityShipDraggable;
 import org.valkyrienskies.mod.common.capability.ship_pilot.IShipPilot;
 import org.valkyrienskies.mod.common.capability.ship_world.IShipWorld;
 import org.valkyrienskies.mod.common.entity.EntityMountable;
 import org.valkyrienskies.mod.common.ships.entity_interaction.EntityDraggable;
-import org.valkyrienskies.mod.common.ships.entity_interaction.IDraggable;
 import org.valkyrienskies.mod.common.ships.ship_transform.CoordinateSpaceType;
 import org.valkyrienskies.mod.common.ships.ship_world.*;
 import org.valkyrienskies.mod.common.util.ValkyrienUtils;
@@ -113,7 +113,8 @@ public class EventsCommon {
             case START:
                 // Reset the air pocket status of all entities
                 for (final Entity entity : world.loadedEntityList) {
-                    final IDraggable draggable = (IDraggable) entity;
+                    IEntityShipDraggable draggable = entity.getCapability(VSCapabilityRegistry.VS_ENTITY_SHIP_DRAGGABLE, null);
+                    if (draggable == null) continue;
                     draggable.decrementTicksAirPocket();
                 }
                 break;
