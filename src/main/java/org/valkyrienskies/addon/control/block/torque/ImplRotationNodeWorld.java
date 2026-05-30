@@ -5,7 +5,8 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.Tuple;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import org.valkyrienskies.mod.common.ships.ship_world.IHasShipManager;
+import org.valkyrienskies.mod.common.capability.VSCapabilityRegistry;
+import org.valkyrienskies.mod.common.capability.ship_world.IShipWorld;
 import org.valkyrienskies.mod.common.ships.ship_world.PhysicsObject;
 import org.valkyrienskies.mod.common.ships.ship_world.WorldServerShipManager;
 
@@ -34,10 +35,12 @@ public class ImplRotationNodeWorld implements IRotationNodeWorld {
         this.posToNodeMap = new HashMap<>();
         this.queuedTasks = new ConcurrentLinkedQueue<>();
 
-        ((WorldServerShipManager) ((IHasShipManager) parent.getWorld()).getManager())
-                .getPhysicsLoop().addRecurringTask(this::processTorquePhysics);
-        ((WorldServerShipManager) ((IHasShipManager) parent.getWorld()).getManager())
-                .getPhysicsLoop().addRecurringTask(physTimeDelta -> processQueuedTasks());
+        IShipWorld shipWorld = parent.getWorld().getCapability(VSCapabilityRegistry.VS_SHIP_WORLD, null);
+        if (shipWorld == null) return;
+        if (!(shipWorld.getManager() instanceof WorldServerShipManager serverShipManager)) return;
+
+        serverShipManager.getPhysicsLoop().addRecurringTask(this::processTorquePhysics);
+        serverShipManager.getPhysicsLoop().addRecurringTask(physTimeDelta -> processQueuedTasks());
     }
 
     public ImplRotationNodeWorld(@Nonnull World parentWorld) {
@@ -46,10 +49,12 @@ public class ImplRotationNodeWorld implements IRotationNodeWorld {
         this.posToNodeMap = new HashMap<>();
         this.queuedTasks = new ConcurrentLinkedQueue<>();
 
-        ((WorldServerShipManager) ((IHasShipManager) parentWorld).getManager())
-                .getPhysicsLoop().addRecurringTask(this::processTorquePhysics);
-        ((WorldServerShipManager) ((IHasShipManager) parentWorld).getManager())
-                .getPhysicsLoop().addRecurringTask(physTimeDelta -> processQueuedTasks());
+        IShipWorld shipWorld = parentWorld.getCapability(VSCapabilityRegistry.VS_SHIP_WORLD, null);
+        if (shipWorld == null) return;
+        if (!(shipWorld.getManager() instanceof WorldServerShipManager serverShipManager)) return;
+
+        serverShipManager.getPhysicsLoop().addRecurringTask(this::processTorquePhysics);
+        serverShipManager.getPhysicsLoop().addRecurringTask(physTimeDelta -> processQueuedTasks());
     }
 
     @Override

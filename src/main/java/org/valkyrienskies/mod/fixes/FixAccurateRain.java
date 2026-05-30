@@ -7,9 +7,10 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.joml.Vector3d;
+import org.valkyrienskies.mod.common.capability.VSCapabilityRegistry;
+import org.valkyrienskies.mod.common.capability.ship_world.IShipWorld;
 import org.valkyrienskies.mod.common.config.VSConfig;
 import org.valkyrienskies.mod.common.ships.ship_world.IPhysObjectWorld;
-import org.valkyrienskies.mod.common.ships.ship_world.IWorldVS;
 import org.valkyrienskies.mod.common.ships.ship_world.PhysicsObject;
 import org.valkyrienskies.mod.common.util.JOML;
 import org.valkyrienskies.mod.common.util.ValkyrienUtils;
@@ -41,16 +42,18 @@ public class FixAccurateRain {
                 return originalHeight;
             }
 
+            IShipWorld shipWorld = world.getCapability(VSCapabilityRegistry.VS_SHIP_WORLD, null);
+            if (shipWorld == null) {
+                throw new IllegalStateException("IShipWorld doesn't appear to exist!");
+            }
             for (final PhysicsObject physicsObject : physicsObjectList) {
-                final RayTraceResult result = ((IWorldVS) world).rayTraceBlocksInShip(traceStart, traceEnd, true, true, false, physicsObject);
+                final RayTraceResult result = shipWorld.rayTraceBlocksInShip(world, traceStart, traceEnd, true, true, false, physicsObject);
 
                 //noinspection ConstantConditions
                 if (result != null && result.getBlockPos() != null && result.typeOfHit != RayTraceResult.Type.MISS) {
-                    Vector3d blockPosVector = JOML.convertDouble(result.getBlockPos())
-                            .add(.5, .5, .5);
+                    Vector3d blockPosVector = JOML.convertDouble(result.getBlockPos()).add(.5, .5, .5);
 
-                    physicsObject
-                            .getShipTransformationManager()
+                    physicsObject.getShipTransformationManager()
                             .getCurrentTickTransform()
                             .getSubspaceToGlobal()
                             .transformPosition(blockPosVector);

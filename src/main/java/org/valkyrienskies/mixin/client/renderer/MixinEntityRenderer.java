@@ -23,8 +23,8 @@ import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.valkyrienskies.mod.common.capability.VSCapabilityRegistry;
 import org.valkyrienskies.mod.common.capability.ship_pilot.IShipPilot;
+import org.valkyrienskies.mod.common.capability.ship_world.IShipWorld;
 import org.valkyrienskies.mod.common.ships.ship_transform.ShipTransform;
-import org.valkyrienskies.mod.common.ships.ship_world.IWorldVS;
 import org.valkyrienskies.mod.common.ships.entity_interaction.EntityShipMountData;
 import org.valkyrienskies.mod.common.util.JOML;
 import org.valkyrienskies.mod.common.util.ValkyrienUtils;
@@ -167,13 +167,18 @@ public abstract class MixinEntityRenderer {
                     f5 = f5 * 0.1F;
 
                     IShipPilot pilotNew = this.mc.player.getCapability(VSCapabilityRegistry.VS_SHIP_PILOT, null);
+                    IShipWorld shipWorld = this.mc.world.getCapability(VSCapabilityRegistry.VS_SHIP_WORLD, null);
 
-                    ((IWorldVS) this.mc.world).excludeShipFromRayTracer(pilotNew.getPilotedShip());
+                    if (pilotNew != null && shipWorld != null) {
+                        shipWorld.excludeShipFromRayTracer(pilotNew.getPilotedShip());
+                    }
 
                     // RayTraceResult raytraceresult = EntityMoveInjectionMethods.rayTraceBlocksIgnoreShip(Minecraft.getMinecraft().world, new Vec3d(d0 + f3, d1 + f4, d2 + f5), new Vec3d(d0 - d4 + f3 + f5, d1 - d6 + f4, d2 - d5 + f5), false, false, false, pilot.getPilotedShip());
                     RayTraceResult raytraceresult = this.mc.world.rayTraceBlocks(new Vec3d(d0 + (double)f3, d1 + (double)f4, d2 + (double)f5), new Vec3d(d0 - d4 + (double)f3 + (double)f5, d1 - d6 + (double)f4, d2 - d5 + (double)f5));
 
-                    ((IWorldVS) this.mc.world).unexcludeShipFromRayTracer(pilotNew.getPilotedShip());
+                    if (pilotNew != null && shipWorld != null) {
+                        shipWorld.unexcludeShipFromRayTracer(pilotNew.getPilotedShip());
+                    }
 
                     if (raytraceresult != null) {
                         double d7 = raytraceresult.hitVec.distanceTo(new Vec3d(d0, d1, d2));

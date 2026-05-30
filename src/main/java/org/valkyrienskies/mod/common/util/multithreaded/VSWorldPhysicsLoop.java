@@ -8,12 +8,13 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod;
+import org.valkyrienskies.mod.common.capability.VSCapabilityRegistry;
+import org.valkyrienskies.mod.common.capability.ship_world.IShipWorld;
 import org.valkyrienskies.mod.common.collision.ShipCollisionTask;
 import org.valkyrienskies.mod.common.collision.WaterForcesTask;
 import org.valkyrienskies.mod.common.config.VSConfig;
 import org.valkyrienskies.mod.common.network.ShipTransformUpdateMessage;
 import org.valkyrienskies.mod.common.ships.ship_transform.ShipTransform;
-import org.valkyrienskies.mod.common.ships.ship_world.IHasShipManager;
 import org.valkyrienskies.mod.common.ships.ship_world.PhysicsObject;
 
 import java.util.*;
@@ -130,8 +131,11 @@ public class VSWorldPhysicsLoop implements Runnable {
     private long lastPacketSendTime = 0;
 
     private void physicsTick(double delta) {
+        IShipWorld shipWorld = this.hostWorld.getCapability(VSCapabilityRegistry.VS_SHIP_WORLD, null);
+        if (shipWorld == null) return;
+
         // Update the immutable ship list.
-        immutableShipsList = ((IHasShipManager) hostWorld).getManager().getAllLoadedThreadSafe();
+        immutableShipsList = shipWorld.getManager().getAllLoadedThreadSafe();
 
         // Run tasks queued to run on physics thread
         recurringTasks.forEach(t -> t.runTask(delta));

@@ -6,6 +6,8 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
+import org.valkyrienskies.mod.common.capability.VSCapabilityRegistry;
+import org.valkyrienskies.mod.common.capability.ship_world.IShipWorld;
 import org.valkyrienskies.mod.common.command.MainCommand.*;
 import org.valkyrienskies.mod.common.command.autocompleters.ShipNameAutocompleter;
 import org.valkyrienskies.mod.common.command.autocompleters.WorldAutocompleter;
@@ -13,7 +15,6 @@ import org.valkyrienskies.mod.common.physics.PhysicsCalculations;
 import org.valkyrienskies.mod.common.ships.QueryableShipData;
 import org.valkyrienskies.mod.common.ships.ShipData;
 import org.valkyrienskies.mod.common.ships.ship_transform.ShipTransform;
-import org.valkyrienskies.mod.common.ships.ship_world.IHasShipManager;
 import org.valkyrienskies.mod.common.ships.ship_world.PhysicsObject;
 import org.valkyrienskies.mod.common.ships.ship_world.PhysicsObject.DeconstructState;
 import org.valkyrienskies.mod.common.ships.ship_world.WorldServerShipManager;
@@ -150,20 +151,19 @@ public class MainCommand implements Runnable {
 
         @Override
         public void run() {
-            if (world == null) {
-                world = sender.getEntityWorld();
-            }
+            if (world == null) world = sender.getEntityWorld();
 
-            VSWorldPhysicsLoop worldPhysicsThread = ((WorldServerShipManager) ((IHasShipManager) world)
-                .getManager()).getPhysicsLoop();
+            IShipWorld shipWorld = world.getCapability(VSCapabilityRegistry.VS_SHIP_WORLD, null);
+            if (shipWorld == null) return;
+            if (!(shipWorld.getManager() instanceof WorldServerShipManager serverShipManager)) return;
 
-            if (worldPhysicsThread != null) {
-                long averagePhysTickTimeNano = worldPhysicsThread.getAveragePhysicsTickTimeNano();
-                double ticksPerSecond = 1000000000D / ((double) averagePhysTickTimeNano);
-                double ticksPerSecondTwoDecimals = Math.floor(ticksPerSecond * 100) / 100;
-                sender.sendMessage(new TextComponentString(
-                    "Player world: " + ticksPerSecondTwoDecimals + " physics ticks per second"));
-            }
+            VSWorldPhysicsLoop worldPhysicsThread = serverShipManager.getPhysicsLoop();
+            if (worldPhysicsThread == null) return;
+
+            long averagePhysTickTimeNano = worldPhysicsThread.getAveragePhysicsTickTimeNano();
+            double ticksPerSecond = 1000000000D / ((double) averagePhysTickTimeNano);
+            double ticksPerSecondTwoDecimals = Math.floor(ticksPerSecond * 100) / 100;
+            sender.sendMessage(new TextComponentString("Player world: " + ticksPerSecondTwoDecimals + " physics ticks per second"));
         }
     }
 

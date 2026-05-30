@@ -22,6 +22,8 @@ import net.minecraft.world.chunk.Chunk;
 import org.apache.commons.lang3.tuple.Triple;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
+import org.valkyrienskies.mod.common.capability.VSCapabilityRegistry;
+import org.valkyrienskies.mod.common.capability.ship_world.IShipWorld;
 import org.valkyrienskies.mod.common.collision.EntityPolygonCollider;
 import org.valkyrienskies.mod.common.collision.PhysPolygonCollider;
 import org.valkyrienskies.mod.common.collision.Polygon;
@@ -30,7 +32,6 @@ import org.valkyrienskies.mod.common.entity.EntityMountable;
 import org.valkyrienskies.mod.common.entity.EntityShipMovementData;
 import org.valkyrienskies.mod.common.ships.ShipData;
 import org.valkyrienskies.mod.common.ships.ship_transform.ShipTransform;
-import org.valkyrienskies.mod.common.ships.ship_world.IHasShipManager;
 import org.valkyrienskies.mod.common.ships.ship_world.PhysicsObject;
 import org.valkyrienskies.mod.common.util.JOML;
 import org.valkyrienskies.mod.common.util.VSMath;
@@ -78,15 +79,14 @@ public class EntityCollisionInjector {
         boolean isPlayerOnLadder = false;
 
         // region Ladder movement
-        if (entity instanceof EntityLivingBase) {
-            final EntityLivingBase base = (EntityLivingBase) entity;
-            final List<PhysicsObject> collidingShips = ((IHasShipManager) entity.getEntityWorld()).getManager()
-                    .getPhysObjectsInAABB(base.getEntityBoundingBox());
+        IShipWorld shipWorld = entity.getEntityWorld().getCapability(VSCapabilityRegistry.VS_SHIP_WORLD, null);
+        if (entity instanceof EntityLivingBase base && shipWorld != null) {
+            final List<PhysicsObject> collidingShips = shipWorld.getManager().getPhysObjectsInAABB(base.getEntityBoundingBox());
             final Iterable<Triple<PhysicsObject, BlockPos, IBlockState>> ladderCollisions = getLadderCollisions(base, collidingShips);
             // For now, just ignore the y component. I may or may not use it later.
 
-            final float forward = ((EntityLivingBase) entity).moveForward;
-            final float strafe = ((EntityLivingBase) entity).moveStrafing;
+            final float forward = base.moveForward;
+            final float strafe = base.moveStrafing;
 
             final double f1 = Math.sin(Math.toRadians(entity.rotationYaw));
             final double f2 = Math.cos(Math.toRadians(entity.rotationYaw));
@@ -478,15 +478,15 @@ public class EntityCollisionInjector {
      * This method generates an arrayList of Polygons that the player is colliding
      * with
      */
-    public static ArrayList<Polygon> getCollidingPolygonsAndDoBlockCols(Entity entity,
-        Vec3d velocity) {
+    public static ArrayList<Polygon> getCollidingPolygonsAndDoBlockCols(Entity entity, Vec3d velocity) {
         ArrayList<Polygon> collisions = new ArrayList<Polygon>();
-        AxisAlignedBB entityBB = entity.getEntityBoundingBox()
-            .offset(velocity.x, velocity.y, velocity.z).expand(1, 1,
-                1);
 
-        List<PhysicsObject> ships = ((IHasShipManager) entity.getEntityWorld()).getManager()
-            .getPhysObjectsInAABB(entityBB);
+        IShipWorld shipWorld = entity.getEntityWorld().getCapability(VSCapabilityRegistry.VS_SHIP_WORLD, null);
+        if (shipWorld == null) return collisions;
+
+        AxisAlignedBB entityBB = entity.getEntityBoundingBox().offset(velocity.x, velocity.y, velocity.z).expand(1, 1, 1);
+
+        List<PhysicsObject> ships = shipWorld.getManager().getPhysObjectsInAABB(entityBB);
         // If a player is riding a Ship, don't process any collision between that Ship
         // and the Player
         for (PhysicsObject wrapper : ships) {

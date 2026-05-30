@@ -2,6 +2,7 @@ package org.valkyrienskies.mod.common.capability.ship_world;
 
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 import org.valkyrienskies.mod.common.ships.ship_world.IPhysObjectWorld;
 import org.valkyrienskies.mod.common.ships.ship_world.PhysicsObject;
 
@@ -11,7 +12,7 @@ public interface IShipWorld {
      * Makes a physics wrapper entity be ignored by the {@link net.minecraft.world.World#rayTraceBlocks(Vec3d,
      * Vec3d, boolean, boolean, boolean)} method (and overloads thereof).
      * <p>
-     * This has no effect on the behavior of {@link #rayTraceBlocksIgnoreShip(Vec3d, Vec3d, boolean,
+     * This has no effect on the behavior of {@link #rayTraceBlocksIgnoreShip(World, Vec3d, Vec3d, boolean,
      * boolean, boolean, PhysicsObject)}.
      * <p>
      * Must be followed later by a call to {@link #unexcludeShipFromRayTracer(PhysicsObject)}
@@ -23,13 +24,19 @@ public interface IShipWorld {
 
     void unexcludeShipFromRayTracer(PhysicsObject entity);
 
-    RayTraceResult rayTraceBlocksIgnoreShip(Vec3d vec31, Vec3d vec32, boolean stopOnLiquid,
+    RayTraceResult rayTraceBlocksIgnoreShip(World world, Vec3d vec31, Vec3d vec32, boolean stopOnLiquid,
                                             boolean ignoreBlockWithoutBoundingBox, boolean returnLastUncollidableBlock,
                                             PhysicsObject toIgnore);
 
-    RayTraceResult rayTraceBlocksInShip(Vec3d vec31, Vec3d vec32, boolean stopOnLiquid,
+    RayTraceResult rayTraceBlocksInShip(World world, Vec3d vec31, Vec3d vec32, boolean stopOnLiquid,
                                         boolean ignoreBlockWithoutBoundingBox, boolean returnLastUncollidableBlock,
                                         PhysicsObject toUse);
+
+    boolean getShouldInterceptRayTrace();
+
+    void setShouldInterceptRayTrace(boolean value);
+
+    ThreadLocal<PhysicsObject> getDontInterceptShip();
 
     //-----originally from IHasShipManager-----
     IPhysObjectWorld getManager();

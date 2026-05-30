@@ -36,6 +36,7 @@ import org.joml.Vector3d;
 import org.joml.Vector3dc;
 import org.valkyrienskies.mod.common.capability.VSCapabilityRegistry;
 import org.valkyrienskies.mod.common.capability.ship_pilot.IShipPilot;
+import org.valkyrienskies.mod.common.capability.ship_world.IShipWorld;
 import org.valkyrienskies.mod.common.entity.EntityMountable;
 import org.valkyrienskies.mod.common.ships.entity_interaction.EntityDraggable;
 import org.valkyrienskies.mod.common.ships.entity_interaction.IDraggable;
@@ -152,22 +153,23 @@ public class EventsCommon {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onWorldLoad(WorldEvent.Load event) {
         World world = event.getWorld();
+        IShipWorld shipWorld = world.getCapability(VSCapabilityRegistry.VS_SHIP_WORLD, null);
+        if (shipWorld == null) return;
+
         event.getWorld().addEventListener(new VSWorldEventListener(world));
-        IHasShipManager shipManager = (IHasShipManager) world;
-        if (!event.getWorld().isRemote) {
-            shipManager.setManager(WorldServerShipManager::new);
-        }
-        else {
-            shipManager.setManager(WorldClientShipManager::new);
-        }
+        if (!event.getWorld().isRemote) shipWorld.setManager(new WorldServerShipManager(world));
+        else shipWorld.setManager(new WorldClientShipManager(world));
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onWorldUnload(WorldEvent.Unload event) {
+        World world = event.getWorld();
+        IShipWorld shipWorld = world.getCapability(VSCapabilityRegistry.VS_SHIP_WORLD, null);
+        if (shipWorld == null) return;
+
         // Fixes memory leak; @DaPorkChop please don't leave static maps lying around D:
         lastPositions.clear();
-        IHasShipManager shipManager = (IHasShipManager) event.getWorld();
-        shipManager.getManager().onWorldUnload();
+        shipWorld.getManager().onWorldUnload();
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -205,50 +207,57 @@ public class EventsCommon {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onExplosionStart(ExplosionEvent.Start event) {
         // Only run on server side
-        if (!event.getWorld().isRemote) {
-            Explosion explosion = event.getExplosion();
-            Vector3dc center = new Vector3d(explosion.x, explosion.y, explosion.z);
-            Optional<PhysicsObject> optionalPhysicsObject = ValkyrienUtils.getPhysoManagingBlock(event.getWorld(),
-                    new BlockPos(event.getExplosion().getPosition()));
-            if (optionalPhysicsObject.isPresent()) {
-                return;
-            }
-            // Explosion radius
-            float radius = explosion.size;
-            AxisAlignedBB toCheck = new AxisAlignedBB(center.x() - radius, center.y() - radius,
-                center.z() - radius,
-                center.x() + radius, center.y() + radius, center.z() + radius);
-            // Find nearby ships, we will check if the explosion effects them
-            List<PhysicsObject> shipsNear = ((IHasShipManager) event.getWorld()).getManager()
-                    .getPhysObjectsInAABB(toCheck);
-            // Process the explosion on the nearby ships
-            for (PhysicsObject ship : shipsNear) {
-                Vector3d inLocal = new Vector3d(center);
-                inLocal.mulPosition(ship.getShipTransform().getGlobalToSubspace());
+        if (event.getWorld().isRemote) return;
 
-                Explosion expl = new Explosion(event.getWorld(), explosion.exploder, inLocal.x, inLocal.y,
-                    inLocal.z, radius, explosion.causesFire, explosion.damagesTerrain);
+        IShipWorld shipWorld = event.getWorld().getCapability(VSCapabilityRegistry.VS_SHIP_WORLD, null);
+        if (shipWorld == null) return;
 
-                double waterRange = .6D;
+        Explosion explosion = event.getExplosion();
+        Vector3dc center = new Vector3d(explosion.x, explosion.y, explosion.z);
+        Optional<PhysicsObject> optionalPhysicsObject = ValkyrienUtils.getPhysoManagingBlock(event.getWorld(),
+                new BlockPos(event.getExplosion().getPosition()));
+        if (optionalPhysicsObject.isPresent()) {
+            return;
+        }
+        // Explosion radius
+        float radius = explosion.size;
+        AxisAlignedBB toCheck = new AxisAlignedBB(
+                center.x() - radius, center.y() - radius,center.z() - radius,
+                center.x() + radius, center.y() + radius, center.z() + radius
+        );
 
-                for (int x = (int) Math.floor(expl.x - waterRange);
-                    x <= Math.ceil(expl.x + waterRange); x++) {
-                    for (int y = (int) Math.floor(expl.y - waterRange);
-                        y <= Math.ceil(expl.y + waterRange); y++) {
-                        for (int z = (int) Math.floor(expl.z - waterRange);
-                            z <= Math.ceil(expl.z + waterRange); z++) {
-                            IBlockState state = event.getWorld()
+        // Find nearby ships, we will check if the explosion effects them
+        List<PhysicsObject> shipsNear = shipWorld.getManager().getPhysObjectsInAABB(toCheck);
+
+        // Process the explosion on the nearby ships
+        for (PhysicsObject ship : shipsNear) {
+            Vector3d inLocal = new Vector3d(center);
+            inLocal.mulPosition(ship.getShipTransform().getGlobalToSubspace());
+
+            Explosion expl = new Explosion(
+                    event.getWorld(), explosion.exploder, inLocal.x, inLocal.y,
+                    inLocal.z, radius, explosion.causesFire, explosion.damagesTerrain
+            );
+
+            double waterRange = .6D;
+
+            for (int x = (int) Math.floor(expl.x - waterRange);
+                 x <= Math.ceil(expl.x + waterRange); x++) {
+                for (int y = (int) Math.floor(expl.y - waterRange);
+                     y <= Math.ceil(expl.y + waterRange); y++) {
+                    for (int z = (int) Math.floor(expl.z - waterRange);
+                         z <= Math.ceil(expl.z + waterRange); z++) {
+                        IBlockState state = event.getWorld()
                                 .getBlockState(new BlockPos(x, y, z));
-                            if (state.getBlock() instanceof BlockLiquid) {
-                                return;
-                            }
+                        if (state.getBlock() instanceof BlockLiquid) {
+                            return;
                         }
                     }
                 }
-
-                expl.doExplosionA();
-                event.getExplosion().affectedBlockPositions.addAll(expl.affectedBlockPositions);
             }
+
+            expl.doExplosionA();
+            event.getExplosion().affectedBlockPositions.addAll(expl.affectedBlockPositions);
         }
     }
 

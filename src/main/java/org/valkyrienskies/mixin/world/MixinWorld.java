@@ -7,7 +7,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.*;
-import net.minecraft.util.math.RayTraceResult.Type;
 import net.minecraft.world.IWorldEventListener;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
@@ -18,15 +17,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.valkyrienskies.mod.common.capability.VSCapabilityRegistry;
+import org.valkyrienskies.mod.common.capability.ship_world.IShipWorld;
 import org.valkyrienskies.mod.common.collision.EntityPolygonCollider;
 import org.valkyrienskies.mod.common.collision.Polygon;
 import org.valkyrienskies.mod.common.collision.ShipPolygon;
 import org.valkyrienskies.mod.common.config.VSConfig;
 import org.valkyrienskies.mod.common.config.VSConfig.ExplosionMode;
 import org.valkyrienskies.mod.common.ships.ship_transform.ShipTransform;
-import org.valkyrienskies.mod.common.ships.ship_world.IHasShipManager;
-import org.valkyrienskies.mod.common.ships.ship_world.IPhysObjectWorld;
-import org.valkyrienskies.mod.common.ships.ship_world.IWorldVS;
 import org.valkyrienskies.mod.common.ships.ship_world.PhysicsObject;
 import org.valkyrienskies.mod.common.util.VSMath;
 import org.valkyrienskies.mod.common.util.ValkyrienUtils;
@@ -38,23 +36,16 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 
 // TODO: This class is horrible
 //       Who cares lol ~Tri0de
 //       Well I don't care at least xd ~Zoroark
 @Mixin(value = World.class, priority = 2018)
 @Implements(@Interface(iface = MixinWorldIntrinsicMethods.class, prefix = "vs$", remap = Remap.NONE))
-public abstract class MixinWorld implements IWorldVS, IHasShipManager {
+public abstract class MixinWorld {
     private static final double MAX_ENTITY_RADIUS_ALT = 2;
     private static final double BOUNDING_BOX_EDGE_LIMIT = 120000000;
     private static final double BOUNDING_BOX_SIZE_LIMIT = 120000000;
-    private static boolean shouldInterceptRayTrace = true;
-    // Raytrace exclusion is call-context state, not world instance state.
-    private static final ThreadLocal<PhysicsObject> dontInterceptShip = ThreadLocal.withInitial(() -> null);
-
-    // The IWorldShipManager
-    private IPhysObjectWorld manager = null;
 
     @Shadow
     protected List<IWorldEventListener> eventListeners;
@@ -129,9 +120,10 @@ public abstract class MixinWorld implements IWorldVS, IHasShipManager {
      * is to fix player sneaking on ships.
      */
     @Inject(method = "getCollisionBoxes(Lnet/minecraft/entity/Entity;Lnet/minecraft/util/math/AxisAlignedBB;ZLjava/util/List;)Z", at = @At("HEAD"), cancellable = true)
-    private void preGetCollisionBoxes(@Nullable Entity entityIn, AxisAlignedBB aabb,
-        boolean p_191504_3_,
-        @Nullable List<AxisAlignedBB> outList, CallbackInfoReturnable<Boolean> callbackInfo) {
+    private void preGetCollisionBoxes(
+            @Nullable Entity entityIn, AxisAlignedBB aabb, boolean p_191504_3_,
+            @Nullable List<AxisAlignedBB> outList, CallbackInfoReturnable<Boolean> callbackInfo
+    ) {
         double deltaX = Math.abs(aabb.maxX - aabb.minX);
         double deltaY = Math.abs(aabb.maxY - aabb.minY);
         double deltaZ = Math.abs(aabb.maxZ - aabb.minZ);
@@ -145,44 +137,50 @@ public abstract class MixinWorld implements IWorldVS, IHasShipManager {
         // Fix player sneaking. I know its strange that the fix would be here of all places, but check
         // Entity.moveEntity() to see for yourself. Minecraft checks if there's any colliding bounding boxes in a given
         // direction, and uses that to determine if can you sneak.
-        if (entityIn instanceof EntityPlayer && entityIn.isSneaking()) {
-            // Add at most once ship block AABB that is colliding with the player. This is ONLY to properly allow
-            // players to sneak while on ships.
-            List<PhysicsObject> ships = getManager().getPhysObjectsInAABB(aabb);
-            for (PhysicsObject wrapper : ships) {
-                Polygon playerInLocal = new Polygon(aabb,
-                        wrapper.getShipTransformationManager()
-                                .getCurrentTickTransform(),
-                        TransformType.GLOBAL_TO_SUBSPACE);
-                AxisAlignedBB bb = playerInLocal.getEnclosedAABB();
+        if (!(entityIn instanceof EntityPlayer) || !entityIn.isSneaking()) return;
 
-                if ((bb.maxX - bb.minX) * (bb.maxZ - bb.minZ) > 9898989) {
-                    // This is too big, something went wrong here
-                    System.err.println("Why did transforming a players bounding box result in a giant bounding box?");
-                    System.err.println(bb + "\n" + wrapper.getShipData() + "\n" + entityIn.toString());
-                    new Exception().printStackTrace();
+        //get IShipWorld
+        World thisWorld = (World) ((Object) this);
+        IShipWorld shipWorld = thisWorld.getCapability(VSCapabilityRegistry.VS_SHIP_WORLD, null);
+        if (shipWorld == null) return;
+
+        // Add at most once ship block AABB that is colliding with the player. This is ONLY to properly allow
+        // players to sneak while on ships.
+        List<PhysicsObject> ships = shipWorld.getManager().getPhysObjectsInAABB(aabb);
+        for (PhysicsObject wrapper : ships) {
+            Polygon playerInLocal = new Polygon(
+                    aabb, wrapper.getShipTransformationManager().getCurrentTickTransform(),
+                    TransformType.GLOBAL_TO_SUBSPACE
+            );
+            AxisAlignedBB bb = playerInLocal.getEnclosedAABB();
+
+            if ((bb.maxX - bb.minX) * (bb.maxZ - bb.minZ) > 9898989) {
+                // This is too big, something went wrong here
+                System.err.println("Why did transforming a players bounding box result in a giant bounding box?");
+                System.err.println(bb + "\n" + wrapper.getShipData() + "\n" + entityIn.toString());
+                new Exception().printStackTrace();
+                return;
+            }
+
+            List<AxisAlignedBB> collidingBBs = getCollisionBoxes(null, bb);
+            Polygon entityPoly = new Polygon(aabb.grow(-.2, 0, -.2));
+            for (AxisAlignedBB inLocal : collidingBBs) {
+                ShipPolygon poly = new ShipPolygon(
+                        inLocal,
+                        wrapper.getShipTransformationManager().getCurrentTickTransform(),
+                        TransformType.SUBSPACE_TO_GLOBAL,
+                        wrapper.getShipTransformationManager().normals,
+                        wrapper
+                );
+
+                EntityPolygonCollider collider = new EntityPolygonCollider(entityPoly, poly, poly.normals, new Vector3d());
+                collider.processData();
+
+                if (!collider.arePolygonsSeparated()) {
+                    outList.add(inLocal);
+                    // We only want to add at most ONE aabb to the return value. Once we have at least one, the
+                    // vanilla sneak code will work correctly.
                     return;
-                }
-
-                List<AxisAlignedBB> collidingBBs = getCollisionBoxes(null, bb);
-                Polygon entityPoly = new Polygon(aabb.grow(-.2, 0, -.2));
-                for (AxisAlignedBB inLocal : collidingBBs) {
-                    ShipPolygon poly = new ShipPolygon(inLocal,
-                            wrapper.getShipTransformationManager()
-                                    .getCurrentTickTransform(),
-                            TransformType.SUBSPACE_TO_GLOBAL,
-                            wrapper.getShipTransformationManager().normals,
-                            wrapper);
-
-                    EntityPolygonCollider collider = new EntityPolygonCollider(entityPoly, poly, poly.normals, new Vector3d());
-                    collider.processData();
-
-                    if (!collider.arePolygonsSeparated()) {
-                        outList.add(inLocal);
-                        // We only want to add at most ONE aabb to the return value. Once we have at least one, the
-                        // vanilla sneak code will work correctly.
-                        return;
-                    }
                 }
             }
         }
@@ -317,142 +315,20 @@ public abstract class MixinWorld implements IWorldVS, IHasShipManager {
         return getPersistentChunkIterable(replacementIterator);
     }
 
-    @Override
-    public void excludeShipFromRayTracer(PhysicsObject entity) {
-        if (dontInterceptShip.get() != null) {
-            throw new IllegalStateException("excluded ship is already set!");
-        }
-        dontInterceptShip.set(entity);
-    }
-
-    @Override
-    public void unexcludeShipFromRayTracer(PhysicsObject entity) {
-        if (dontInterceptShip.get() != entity) {
-            throw new IllegalStateException("must exclude the same ship!");
-        }
-        dontInterceptShip.remove();
-    }
-
     @Inject(method = "rayTraceBlocks(Lnet/minecraft/util/math/Vec3d;Lnet/minecraft/util/math/Vec3d;ZZZ)Lnet/minecraft/util/math/RayTraceResult;", at = @At("HEAD"), cancellable = true)
     private void preRayTraceBlocks(Vec3d vec31, Vec3d vec32, boolean stopOnLiquid,
         boolean ignoreBlockWithoutBoundingBox,
-        boolean returnLastUncollidableBlock, CallbackInfoReturnable<RayTraceResult> callbackInfo) {
-        if (shouldInterceptRayTrace) {
-            callbackInfo.setReturnValue(rayTraceBlocksIgnoreShip(vec31, vec32, stopOnLiquid,
+        boolean returnLastUncollidableBlock, CallbackInfoReturnable<RayTraceResult> callbackInfo
+    ) {
+        World thisWorld = (World) ((Object) this);
+        IShipWorld shipWorld = thisWorld.getCapability(VSCapabilityRegistry.VS_SHIP_WORLD, null);
+        if (shipWorld == null || !shipWorld.getShouldInterceptRayTrace()) return;
+
+        callbackInfo.setReturnValue(shipWorld.rayTraceBlocksIgnoreShip(
+                thisWorld, vec31, vec32, stopOnLiquid,
                 ignoreBlockWithoutBoundingBox, returnLastUncollidableBlock,
-                dontInterceptShip.get()));
-        }
-    }
-
-    @Override
-    public RayTraceResult rayTraceBlocksIgnoreShip(Vec3d vec31, Vec3d vec32, boolean stopOnLiquid,
-                                                   boolean ignoreBlockWithoutBoundingBox, boolean returnLastUncollidableBlock,
-                                                   PhysicsObject toIgnore) {
-        shouldInterceptRayTrace = false;
-        RayTraceResult vanillaTrace = World.class.cast(this)
-            .rayTraceBlocks(vec31, vec32, stopOnLiquid,
-                ignoreBlockWithoutBoundingBox, returnLastUncollidableBlock);
-
-        IPhysObjectWorld physObjectWorld = null;
-        if (ValkyrienUtils.notInFakeWorldBlacklist(World.class.cast(this))) {
-            physObjectWorld = ((IHasShipManager) (this)).getManager();
-        }
-
-        if (physObjectWorld == null) {
-            return vanillaTrace;
-        }
-
-        Vec3d playerReachVector = vec32.subtract(vec31);
-
-        AxisAlignedBB playerRangeBB = new AxisAlignedBB(vec31.x, vec31.y, vec31.z, vec32.x, vec32.y,
-            vec32.z);
-
-        List<PhysicsObject> nearbyShips = physObjectWorld.getPhysObjectsInAABB(playerRangeBB);
-        // Get rid of the Ship that we're not supposed to be RayTracing for
-        nearbyShips.remove(toIgnore);
-
-        double reachDistance = playerReachVector.length();
-        double worldResultDistFromPlayer = 420000000D;
-        if (vanillaTrace != null && vanillaTrace.hitVec != null) {
-            worldResultDistFromPlayer = vanillaTrace.hitVec.distanceTo(vec31);
-        }
-
-        for (PhysicsObject wrapper : nearbyShips) {
-            Vec3d playerEyesPos = vec31;
-            playerReachVector = vec32.subtract(vec31);
-
-            ShipTransform shipTransform = wrapper.getShipTransformationManager()
-                .getRenderTransform();
-
-            playerEyesPos = shipTransform.transform(playerEyesPos,
-                TransformType.GLOBAL_TO_SUBSPACE);
-            playerReachVector = shipTransform.rotate(playerReachVector,
-                TransformType.GLOBAL_TO_SUBSPACE);
-
-            Vec3d playerEyesReachAdded = playerEyesPos.add(playerReachVector.x * reachDistance,
-                playerReachVector.y * reachDistance, playerReachVector.z * reachDistance);
-            RayTraceResult resultInShip = World.class.cast(this)
-                .rayTraceBlocks(playerEyesPos, playerEyesReachAdded,
-                    stopOnLiquid, ignoreBlockWithoutBoundingBox, returnLastUncollidableBlock);
-            if (resultInShip != null && resultInShip.hitVec != null
-                && resultInShip.typeOfHit == Type.BLOCK) {
-                double shipResultDistFromPlayer = resultInShip.hitVec.distanceTo(playerEyesPos);
-                if (shipResultDistFromPlayer < worldResultDistFromPlayer) {
-                    worldResultDistFromPlayer = shipResultDistFromPlayer;
-                    // The hitVec must ALWAYS be in global coordinates.
-                    resultInShip.hitVec = shipTransform
-                        .transform(resultInShip.hitVec, TransformType.SUBSPACE_TO_GLOBAL);
-                    vanillaTrace = resultInShip;
-                }
-            }
-        }
-
-        shouldInterceptRayTrace = true;
-        return vanillaTrace;
-    }
-
-    @Override
-    public RayTraceResult rayTraceBlocksInShip(Vec3d vec31, Vec3d vec32, boolean stopOnLiquid,
-                                               boolean ignoreBlockWithoutBoundingBox, boolean returnLastUncollidableBlock,
-                                               PhysicsObject toUse) {
-        shouldInterceptRayTrace = false;
-
-        final ShipTransform shipTransform = toUse.getShipTransformationManager()
-                .getRenderTransform();
-
-        final Vec3d traceStart = shipTransform.transform(vec31,
-                TransformType.GLOBAL_TO_SUBSPACE);
-        final Vec3d traceEnd = shipTransform.transform(vec32,
-                TransformType.GLOBAL_TO_SUBSPACE);
-
-        final RayTraceResult resultInShip = World.class.cast(this)
-                .rayTraceBlocks(traceStart, traceEnd,
-                        stopOnLiquid, ignoreBlockWithoutBoundingBox, returnLastUncollidableBlock);
-        if (resultInShip != null && resultInShip.hitVec != null && resultInShip.typeOfHit == Type.BLOCK) {
-            // The hitVec must ALWAYS be in global coordinates.
-            resultInShip.hitVec = shipTransform
-                    .transform(resultInShip.hitVec, TransformType.SUBSPACE_TO_GLOBAL);
-            shouldInterceptRayTrace = true;
-            return resultInShip;
-        }
-
-        shouldInterceptRayTrace = true;
-        return null;
-    }
-
-
-    @Override
-    public IPhysObjectWorld getManager() {
-        if (manager == null) {
-            throw new IllegalStateException(
-                "We can't be accessing this manager since WorldEvent.load() was never called!");
-        }
-        return manager;
-    }
-
-    @Override
-    public void setManager(Function<World, IPhysObjectWorld> managerSupplier) {
-        manager = managerSupplier.apply(World.class.cast(this));
+                shipWorld.getDontInterceptShip().get()
+        ));
     }
 
     private static final RayTraceResult DUMMY_RAYTRACE_RESULT = new RayTraceResult(Vec3d.ZERO, EnumFacing.DOWN);
@@ -468,11 +344,16 @@ public abstract class MixinWorld implements IWorldVS, IHasShipManager {
         )
     )
     private RayTraceResult rayTraceBlocksForGetBlockDensity(World world, Vec3d start, Vec3d end) {
+        //get IShipWorld
+        World thisWorld = (World) ((Object) this);
+        IShipWorld shipWorld = thisWorld.getCapability(VSCapabilityRegistry.VS_SHIP_WORLD, null);
+        if (shipWorld == null) return null;
+
         if (VSConfig.explosionMode == ExplosionMode.VANILLA) {
             // Vanilla raytrace, ignore ships and perform the function like normal
-            shouldInterceptRayTrace = false;
+            shipWorld.setShouldInterceptRayTrace(false);
             RayTraceResult result = rayTraceBlocks(start, end);
-            shouldInterceptRayTrace = true;
+            shipWorld.setShouldInterceptRayTrace(true);
             return result;
         } 
         else if (VSConfig.explosionMode == ExplosionMode.SLOW_VANILLA) {
@@ -490,11 +371,10 @@ public abstract class MixinWorld implements IWorldVS, IHasShipManager {
         // Whether or not this ray trace hit a block that was collidable.
         boolean collided = blocks.stream().anyMatch(canCollide);
 
-        IPhysObjectWorld physObjectWorld = ((IHasShipManager) (this)).getManager();
-
-        if (physObjectWorld != null) {
-            List<PhysicsObject> nearbyShips = physObjectWorld.getPhysObjectsInAABB(
-                new AxisAlignedBB(start.x, start.y, start.z, end.x, end.y, end.z));
+        if (shipWorld.getManager() != null) {
+            List<PhysicsObject> nearbyShips = shipWorld.getManager().getPhysObjectsInAABB(
+                new AxisAlignedBB(start.x, start.y, start.z, end.x, end.y, end.z)
+            );
 
             for (PhysicsObject obj : nearbyShips) {
                 Vec3d transformedStart = obj.transformVector(start, TransformType.GLOBAL_TO_SUBSPACE);
@@ -525,8 +405,13 @@ public abstract class MixinWorld implements IWorldVS, IHasShipManager {
      */
     @Inject(method = "checkBlockCollision", at = @At("HEAD"), cancellable = true)
     public void postCheckBlockCollision(final AxisAlignedBB axisAlignedBB, final CallbackInfoReturnable<Boolean> callbackInfoReturnable) {
+        //get IShipWorld
+        World thisWorld = (World) ((Object) this);
+        IShipWorld shipWorld = thisWorld.getCapability(VSCapabilityRegistry.VS_SHIP_WORLD, null);
+        if (shipWorld == null) return;
+
         // If there wasn't a collision in the world, then check if there is a collision in ships
-        final List<PhysicsObject> physObjectsInAABB = getManager().getPhysObjectsInAABB(axisAlignedBB);
+        final List<PhysicsObject> physObjectsInAABB = shipWorld.getManager().getPhysObjectsInAABB(axisAlignedBB);
         for (final PhysicsObject physicsObject : physObjectsInAABB) {
             final ShipTransform shipTransform = physicsObject.getShipTransform();
             final AxisAlignedBB aabbInShipSpace = new Polygon(axisAlignedBB, shipTransform.getGlobalToSubspace()).getEnclosedAABB();

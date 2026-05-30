@@ -19,14 +19,18 @@ import org.valkyrienskies.mod.common.capability.framework.VSDefaultCapabilitySto
 import org.valkyrienskies.mod.common.capability.framework.VSDefaultCapabilityTransientStorage;
 import org.valkyrienskies.mod.common.capability.ship_pilot.IShipPilot;
 import org.valkyrienskies.mod.common.capability.ship_pilot.ImplCapabilityShipPilot;
+import org.valkyrienskies.mod.common.capability.ship_world.IShipWorld;
+import org.valkyrienskies.mod.common.capability.ship_world.ImplCapabilityShipWorld;
 
 import javax.annotation.Nonnull;
 
 @EventBusSubscriber(modid = ValkyrienSkiesMod.MOD_ID)
 public class VSCapabilityRegistry {
-
     @CapabilityInject(VSWorldDataCapability.class)
     public static final Capability<VSWorldDataCapability> VS_WORLD_DATA = getNull();
+
+    @CapabilityInject(IShipWorld.class)
+    public static final Capability<IShipWorld> VS_SHIP_WORLD = getNull();
 
     @CapabilityInject(ICapabilityEntityBackup.class)
     public static final Capability<ICapabilityEntityBackup> VS_ENTITY_BACKUP = getNull();
@@ -38,7 +42,13 @@ public class VSCapabilityRegistry {
     public static void attachWorldCapabilities(AttachCapabilitiesEvent<World> event) {
         event.addCapability(
             new ResourceLocation(ValkyrienSkiesMod.MOD_ID, "world_data_capability"),
-            new VSDefaultCapabilityProvider<>(VS_WORLD_DATA));
+            new VSDefaultCapabilityProvider<>(VS_WORLD_DATA)
+        );
+
+        event.addCapability(
+                new ResourceLocation(ValkyrienSkiesMod.MOD_ID, "world_ship_capability"),
+                new VSDefaultCapabilityProviderTransient<>(VS_SHIP_WORLD)
+        );
     }
 
     @SubscribeEvent
@@ -58,9 +68,15 @@ public class VSCapabilityRegistry {
 
     public static void registerCapabilities() {
         CapabilityManager.INSTANCE.register(
-            VSWorldDataCapability.class,
-            new VSDefaultCapabilityStorage<>(),
-            VSWorldDataCapability::new
+                VSWorldDataCapability.class,
+                new VSDefaultCapabilityStorage<>(),
+                VSWorldDataCapability::new
+        );
+
+        CapabilityManager.INSTANCE.register(
+                IShipWorld.class,
+                new VSDefaultCapabilityTransientStorage<>(),
+                ImplCapabilityShipWorld::new
         );
 
         CapabilityManager.INSTANCE.register(
@@ -89,5 +105,4 @@ public class VSCapabilityRegistry {
     public static <T> T getNull() {
         return null;
     }
-
 }

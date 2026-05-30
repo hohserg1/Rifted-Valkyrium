@@ -24,6 +24,8 @@ import org.joml.Vector3d;
 import org.joml.Vector3dc;
 import org.lwjgl.opengl.GL11;
 import org.valkyrienskies.mod.client.render.GibsModelRegistry;
+import org.valkyrienskies.mod.common.capability.VSCapabilityRegistry;
+import org.valkyrienskies.mod.common.capability.ship_world.IShipWorld;
 import org.valkyrienskies.mod.common.config.VSConfig;
 import org.valkyrienskies.mod.common.entity.EntityShipMovementData;
 import org.valkyrienskies.mod.common.ships.QueryableShipData;
@@ -31,7 +33,6 @@ import org.valkyrienskies.mod.common.ships.ShipData;
 import org.valkyrienskies.mod.common.ships.entity_interaction.EntityDraggable;
 import org.valkyrienskies.mod.common.ships.entity_interaction.IDraggable;
 import org.valkyrienskies.mod.common.ships.ship_transform.ShipTransform;
-import org.valkyrienskies.mod.common.ships.ship_world.IHasShipManager;
 import org.valkyrienskies.mod.common.ships.ship_world.IPhysObjectWorld;
 import org.valkyrienskies.mod.common.ships.ship_world.PhysicsObject;
 import org.valkyrienskies.mod.common.util.VSRenderUtils;
@@ -51,22 +52,23 @@ public class EventsClient {
     @SubscribeEvent
     public void onClientTick(ClientTickEvent event) {
         final World world = Minecraft.getMinecraft().world;
-        if (world == null) {
-            // There's no world, so there's nothing to run.
-            return;
-        }
+        // There's no world, so there's nothing to run.
+        if (world == null) return;
+
+        IShipWorld shipWorld = world.getCapability(VSCapabilityRegistry.VS_SHIP_WORLD, null);
+        if (shipWorld == null) return;
+
         // Pretend this is the world tick, because diesieben07 doesn't want WorldClient to make world tick events.
         switch (event.phase) {
             case START:
                 // Nothing for now
 
-                for (PhysicsObject wrapper : ((IHasShipManager) world).getManager().getAllLoadedPhysObj()) {
+                for (PhysicsObject wrapper : shipWorld.getManager().getAllLoadedPhysObj()) {
                     // This is necessary because Minecraft will run a raytrace right after this
                     // event to determine what the player is looking at for interaction purposes.
                     // That raytrace will use the render transform, so we must have the render
                     // transform set to a partialTick of 1.0.
-                    wrapper.getShipTransformationManager()
-                            .updateRenderTransform(1.0);
+                    wrapper.getShipTransformationManager().updateRenderTransform(1.0);
                 }
 
                 // Reset the air pocket status of all entities
@@ -79,8 +81,7 @@ public class EventsClient {
             case END:
                 if (!Minecraft.getMinecraft().isGamePaused()) {
                     // Tick the IShipManager on the world client.
-                    IHasShipManager shipManager = (IHasShipManager) world;
-                    shipManager.getManager().tick();
+                    shipWorld.getManager().tick();
                     EntityDraggable.tickAddedVelocityForWorld(world);
                 }
                 break;

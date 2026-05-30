@@ -18,6 +18,7 @@ import org.joml.Vector3d;
 import org.joml.Vector3dc;
 import org.valkyrienskies.mod.common.capability.VSCapabilityRegistry;
 import org.valkyrienskies.mod.common.capability.VSWorldDataCapability;
+import org.valkyrienskies.mod.common.capability.ship_world.IShipWorld;
 import org.valkyrienskies.mod.common.collision.Polygon;
 import org.valkyrienskies.mod.common.entity.EntityMountable;
 import org.valkyrienskies.mod.common.entity.EntityShipMovementData;
@@ -30,7 +31,6 @@ import org.valkyrienskies.mod.common.ships.entity_interaction.EntityShipMountDat
 import org.valkyrienskies.mod.common.ships.entity_interaction.IDraggable;
 import org.valkyrienskies.mod.common.ships.ship_transform.CoordinateSpaceType;
 import org.valkyrienskies.mod.common.ships.ship_transform.ShipTransform;
-import org.valkyrienskies.mod.common.ships.ship_world.IHasShipManager;
 import org.valkyrienskies.mod.common.ships.ship_world.IPhysObjectWorld;
 import org.valkyrienskies.mod.common.ships.ship_world.PhysicsObject;
 import org.valkyrienskies.mod.common.ships.ship_world.WorldServerShipManager;
@@ -183,7 +183,11 @@ public final class ValkyrienUtils {
     }
 
     public static @NotNull WorldServerShipManager getServerShipManager(World world) {
-        return (WorldServerShipManager) ((IHasShipManager) world).getManager();
+        IShipWorld shipWorld = world.getCapability(VSCapabilityRegistry.VS_SHIP_WORLD, null);
+        if (shipWorld == null) {
+            throw new RuntimeException("IShipWorld doesn't appear to exist!");
+        }
+        return (WorldServerShipManager) shipWorld.getManager();
     }
 
     /**
@@ -204,7 +208,11 @@ public final class ValkyrienUtils {
     }
 
     public static @NotNull Iterable<PhysicsObject> getPhysosLoadedInWorld(World world) {
-        return ((IHasShipManager) world).getManager().getAllLoadedPhysObj();
+        IShipWorld shipWorld = world.getCapability(VSCapabilityRegistry.VS_SHIP_WORLD, null);
+        if (shipWorld == null) {
+            throw new RuntimeException("IShipWorld doesn't appear to exist!");
+        }
+        return shipWorld.getManager().getAllLoadedPhysObj();
     }
 
     public static void assembleShipAsOrderedByPlayer(World world, @Nullable EntityPlayerMP creator,
@@ -226,8 +234,10 @@ public final class ValkyrienUtils {
     }
 
     public static @Nullable IPhysObjectWorld getPhysObjWorld(@Nullable World world) {
-        if (!(world instanceof IHasShipManager hasShipManager)) return null;
-        return hasShipManager.getManager();
+        if (world == null) return null;
+        IShipWorld shipWorld = world.getCapability(VSCapabilityRegistry.VS_SHIP_WORLD, null);
+        if (shipWorld == null) return null;
+        return shipWorld.getManager();
     }
 
     /**

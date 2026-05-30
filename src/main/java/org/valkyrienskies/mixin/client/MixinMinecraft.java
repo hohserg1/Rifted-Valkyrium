@@ -23,7 +23,6 @@ import java.util.Optional;
 
 @Mixin(Minecraft.class)
 public class MixinMinecraft {
-
     /**
      * This mixin fixes slabs not placing correctly on ships.
      */
