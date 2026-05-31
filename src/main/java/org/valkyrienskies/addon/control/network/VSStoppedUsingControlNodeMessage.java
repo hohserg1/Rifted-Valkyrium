@@ -62,7 +62,7 @@ public class VSStoppedUsingControlNodeMessage implements IMessage {
     public static class Handler implements IMessageHandler<VSStoppedUsingControlNodeMessage, IMessage> {
         @Override
         public IMessage onMessage(VSStoppedUsingControlNodeMessage message, MessageContext ctx) {
-            IThreadListener mainThread = ctx.getServerHandler().server;
+            IThreadListener mainThread = ctx.getServerHandler().player.server;
             mainThread.addScheduledTask(() -> {
                 EntityPlayerMP player = ctx.getServerHandler().player;
                 if (message.posToStopUsing != null) {

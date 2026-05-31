@@ -45,7 +45,7 @@ public class VSNodeControlMessage implements IMessage {
     public static class Handler implements IMessageHandler<VSNodeControlMessage, IMessage> {
         @Override
         public IMessage onMessage(VSNodeControlMessage message, MessageContext ctx) {
-            IThreadListener mainThread = ctx.getServerHandler().server;
+            IThreadListener mainThread = ctx.getServerHandler().player.server;
             mainThread.addScheduledTask(() -> {
                 if (message.controllerPos != null) {
                     World worldObj = ctx.getServerHandler().player.world;

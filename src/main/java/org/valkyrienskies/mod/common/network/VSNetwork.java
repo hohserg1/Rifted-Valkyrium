@@ -39,15 +39,15 @@ public class VSNetwork {
             // Special treatment for certain packets.
             if (packetIn instanceof SPacketSoundEffect soundEffect) {
                 packetIn = new SPacketSoundEffect(
-                        soundEffect.sound, soundEffect.category,
+                        soundEffect.getSound(), soundEffect.getCategory(),
                         packetPosition.x, packetPosition.y, packetPosition.z,
-                        soundEffect.soundVolume, soundEffect.soundPitch
+                        soundEffect.getVolume(), soundEffect.getPitch()
                 );
             }
 
             if (packetIn instanceof SPacketEffect effect) {
                 BlockPos blockpos = new BlockPos(packetPosition.x, packetPosition.y, packetPosition.z);
-                packetIn = new SPacketEffect(effect.soundType, blockpos, effect.soundData, effect.serverWide);
+                packetIn = new SPacketEffect(effect.getSoundType(), blockpos, effect.getSoundData(), effect.isSoundServerwide());
             }
         }
 

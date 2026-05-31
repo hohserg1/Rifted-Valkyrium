@@ -214,7 +214,11 @@ public class EventsCommon {
         if (shipWorld == null) return;
 
         Explosion explosion = event.getExplosion();
-        Vector3dc center = new Vector3d(explosion.x, explosion.y, explosion.z);
+        Vector3dc center = new Vector3d(
+                explosion.getPosition().x,
+                explosion.getPosition().y,
+                explosion.getPosition().z
+        );
         Optional<PhysicsObject> optionalPhysicsObject = ValkyrienUtils.getPhysoManagingBlock(event.getWorld(),
                 new BlockPos(event.getExplosion().getPosition()));
         if (optionalPhysicsObject.isPresent()) {
@@ -242,12 +246,12 @@ public class EventsCommon {
 
             double waterRange = .6D;
 
-            for (int x = (int) Math.floor(expl.x - waterRange);
-                 x <= Math.ceil(expl.x + waterRange); x++) {
-                for (int y = (int) Math.floor(expl.y - waterRange);
-                     y <= Math.ceil(expl.y + waterRange); y++) {
-                    for (int z = (int) Math.floor(expl.z - waterRange);
-                         z <= Math.ceil(expl.z + waterRange); z++) {
+            for (int x = (int) Math.floor(inLocal.x - waterRange);
+                 x <= Math.ceil(inLocal.x + waterRange); x++) {
+                for (int y = (int) Math.floor(inLocal.y - waterRange);
+                     y <= Math.ceil(inLocal.y + waterRange); y++) {
+                    for (int z = (int) Math.floor(inLocal.z - waterRange);
+                         z <= Math.ceil(inLocal.z + waterRange); z++) {
                         IBlockState state = event.getWorld()
                                 .getBlockState(new BlockPos(x, y, z));
                         if (state.getBlock() instanceof BlockLiquid) {
@@ -258,7 +262,7 @@ public class EventsCommon {
             }
 
             expl.doExplosionA();
-            event.getExplosion().affectedBlockPositions.addAll(expl.affectedBlockPositions);
+            event.getExplosion().getAffectedBlockPositions().addAll(expl.getAffectedBlockPositions());
         }
     }
 

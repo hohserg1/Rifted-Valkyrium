@@ -72,7 +72,7 @@ public class MessagePlayerStoppedPiloting implements IMessage {
     public static class Handler implements IMessageHandler<MessagePlayerStoppedPiloting, IMessage> {
         @Override
         public IMessage onMessage(MessagePlayerStoppedPiloting message, MessageContext ctx) {
-            IThreadListener mainThread = ctx.getServerHandler().server;
+            IThreadListener mainThread = ctx.getServerHandler().player.server;
             mainThread.addScheduledTask(() -> {
                 EntityPlayerMP player = ctx.getServerHandler().player;
                 if (message.posToStopPiloting != null) {

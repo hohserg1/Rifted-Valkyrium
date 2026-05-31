@@ -131,7 +131,7 @@ public class BlockPhysicsDetails {
         } else if (blockToMass.get(block) != null) {
             return blockToMass.get(block);
         } else {
-            return getMassOfMaterial(block.material);
+            return getMassOfMaterial(block.getDefaultState().getMaterial());
         }
     }
 

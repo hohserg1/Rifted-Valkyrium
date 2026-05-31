@@ -36,7 +36,7 @@ public class PhysRenderChunk {
         this.toRender = toRender;
         this.chunk = chunk;
         for (int i = 0; i < 16; i++) {
-            ExtendedBlockStorage storage = this.chunk.storageArrays[i];
+            ExtendedBlockStorage storage = this.chunk.getBlockStorageArray()[i];
             if (storage != null) {
                 IVSRenderChunk renderChunk;
                 // Support old graphics cards that can't use VBOs.
@@ -70,7 +70,7 @@ public class PhysRenderChunk {
 
     public void updateLayers(int minLayer, int maxLayer) {
         // Update tile entities
-        final List<TileEntity> newTilesToRender = new ArrayList<>(chunk.tileEntities.values());
+        final List<TileEntity> newTilesToRender = new ArrayList<>(chunk.getTileEntityMap().values());
         Minecraft.getMinecraft().renderGlobal
                 .updateTileEntities(tileEntitiesToRender, newTilesToRender);
         this.tileEntitiesToRender = newTilesToRender;
@@ -256,7 +256,7 @@ public class PhysRenderChunk {
                             if (iblockstate.getBlock()
                                 .canRenderInLayer(iblockstate, layerToUpdate)) {
                                 Minecraft.getMinecraft().getBlockRendererDispatcher()
-                                    .renderBlock(iblockstate, pos, chunkToRender.world, vsChunkBuilder);
+                                    .renderBlock(iblockstate, pos, chunkToRender.getWorld(), vsChunkBuilder);
                             }
                         } catch (NullPointerException e) {
                             System.out.println("Something was null!");
@@ -421,7 +421,7 @@ public class PhysRenderChunk {
                             if (iblockstate.getBlock()
                                     .canRenderInLayer(iblockstate, layerToUpdate)) {
                                 Minecraft.getMinecraft().getBlockRendererDispatcher()
-                                        .renderBlock(iblockstate, pos, chunkToRender.world,
+                                        .renderBlock(iblockstate, pos, chunkToRender.getWorld(),
                                                 worldrenderer);
                             }
                         } catch (NullPointerException e) {

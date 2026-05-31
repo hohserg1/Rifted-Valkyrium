@@ -50,7 +50,7 @@ public class PilotControlsMessage implements IMessage {
     public static class Handler implements IMessageHandler<PilotControlsMessage, IMessage> {
         @Override
         public IMessage onMessage(PilotControlsMessage message, MessageContext ctx) {
-            IThreadListener mainThread = ctx.getServerHandler().server;
+            IThreadListener mainThread = ctx.getServerHandler().player.server;
             mainThread.addScheduledTask(() -> {
                 if (message.controllerPos == null) return;
 

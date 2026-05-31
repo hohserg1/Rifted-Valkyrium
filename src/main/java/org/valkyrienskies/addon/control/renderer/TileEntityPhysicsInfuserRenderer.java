@@ -60,7 +60,7 @@ public class TileEntityPhysicsInfuserRenderer extends
 
         for (TileEntityPhysicsInfuser.EnumInfuserCore infuserCore : TileEntityPhysicsInfuser.EnumInfuserCore
             .values()) {
-            if (!handler.getStackInSlot(infuserCore.coreSlotIndex).isEmpty) {
+            if (!handler.getStackInSlot(infuserCore.coreSlotIndex).isEmpty()) {
                 GlStateManager.pushMatrix();
                 GlStateManager
                     .translate(0, tileentity.getCoreVerticalOffset(infuserCore, partialTick), 0);

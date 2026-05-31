@@ -109,9 +109,9 @@ public class ShipCollisionTask implements Callable<Void> {
         final Chunk chunkIn = toTask.getParent().getChunkAt(x >> 4, z >> 4);
         y = Math.max(0, Math.min(y, 255));
 
-        ExtendedBlockStorage storage = chunkIn.storageArrays[y >> 4];
+        ExtendedBlockStorage storage = chunkIn.getBlockStorageArray()[y >> 4];
         if (storage != null) {
-            ITerrainOctreeProvider provider = (ITerrainOctreeProvider) storage.data;
+            ITerrainOctreeProvider provider = (ITerrainOctreeProvider) storage.getData();
             IBitOctree octree = provider.getSolidOctree();
 
             if (octree.get(x & 15, y & 15, z & 15)) {

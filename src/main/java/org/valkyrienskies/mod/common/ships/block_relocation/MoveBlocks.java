@@ -30,15 +30,15 @@ public class MoveBlocks {
         Chunk chunkToSet = world.getChunk(newPos);
         int storageIndex = newPos.getY() >> 4;
         // Check that we're placing the block in a valid position
-        if (storageIndex < 0 || storageIndex >= chunkToSet.storageArrays.length) {
+        if (storageIndex < 0 || storageIndex >= chunkToSet.getBlockStorageArray().length) {
             // Invalid position, abort!
             return;
         }
-        if (chunkToSet.storageArrays[storageIndex] == Chunk.NULL_BLOCK_STORAGE) {
-            chunkToSet.storageArrays[storageIndex] = new ExtendedBlockStorage(storageIndex << 4,
+        if (chunkToSet.getBlockStorageArray()[storageIndex] == Chunk.NULL_BLOCK_STORAGE) {
+            chunkToSet.getBlockStorageArray()[storageIndex] = new ExtendedBlockStorage(storageIndex << 4,
                 true);
         }
-        chunkToSet.storageArrays[storageIndex]
+        chunkToSet.getBlockStorageArray()[storageIndex]
             .set(newPos.getX() & 15, newPos.getY() & 15, newPos.getZ() & 15, newState);
         // Only want to send the update to clients and nothing else, so we use flag 2.
         world.notifyBlockUpdate(newPos, oldState, newState, 2);

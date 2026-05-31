@@ -117,9 +117,8 @@ public final class ValkyrienUtils {
     }
 
     public static @NotNull EntityShipMountData getMountedShipAndPos(Entity entity) {
-        Entity ridingEntity = entity.ridingEntity;
-        if (ridingEntity instanceof EntityMountable) {
-            EntityMountable mountable = (EntityMountable) ridingEntity;
+        Entity ridingEntity = entity.getRidingEntity();
+        if (ridingEntity instanceof EntityMountable mountable) {
             Optional<PhysicsObject> mountedShip = mountable.getMountedShip();
             if (mountedShip.isPresent()) {
                 return new EntityShipMountData(mountedShip.get(), mountable.getMountPos());

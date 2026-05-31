@@ -185,7 +185,7 @@ public class WorldWaterCollider {
 
             Chunk chunk = cache.chunkArray[arrayChunkX][arrayChunkZ];
             for (int storageY = minY >> 4; storageY <= maxY >> 4; storageY++) {
-                ExtendedBlockStorage extendedblockstorage = chunk.storageArrays[storageY];
+                ExtendedBlockStorage extendedblockstorage = chunk.getBlockStorageArray()[storageY];
                 if (extendedblockstorage != null) {
                     int minStorageX = chunkX << 4;
                     int minStorageY = storageY << 4;
@@ -195,7 +195,7 @@ public class WorldWaterCollider {
                     int maxStorageY = Math.min(maxY, minStorageY + 15);
                     int maxStorageZ = minStorageZ + 15;
 
-                    ITerrainOctreeProvider provider = (ITerrainOctreeProvider) extendedblockstorage.data;
+                    ITerrainOctreeProvider provider = (ITerrainOctreeProvider) extendedblockstorage.getData();
                     IBitOctree octree = provider.getLiquidOctree();
                     for (int x = minStorageX; x <= maxStorageX; x++) {
                         for (int y = minStorageY; y <= maxStorageY; y++) {
@@ -286,8 +286,8 @@ public class WorldWaterCollider {
     private boolean checkForCollisionFast(final Chunk chunk, final int localX, final int localY,
         final int localZ,
         final int x, final int y, final int z, final TIntList output) {
-        if (chunk.storageArrays[localY >> 4] != null) {
-            ITerrainOctreeProvider provider = (ITerrainOctreeProvider) chunk.storageArrays[localY >> 4]
+        if (chunk.getBlockStorageArray()[localY >> 4] != null) {
+            ITerrainOctreeProvider provider = (ITerrainOctreeProvider) chunk.getBlockStorageArray()[localY >> 4]
                 .getData();
             IBitOctree octreeInLocal = provider.getSolidOctree();
             if (octreeInLocal.get(localX & 15, localY & 15, localZ & 15)) {

@@ -96,13 +96,13 @@ public class ContainerPhysicsInfuser extends Container {
                 return ItemStack.EMPTY;
             }
 
-            if (itemStack2.stackSize == 0) {
+            if (itemStack2.getCount() == 0) {
                 slot.putStack(ItemStack.EMPTY);
             } else {
                 slot.onSlotChanged();
             }
 
-            if (itemStack2.stackSize == itemStack1.stackSize) {
+            if (itemStack2.getCount() == itemStack1.getCount()) {
                 return ItemStack.EMPTY;
             }
 

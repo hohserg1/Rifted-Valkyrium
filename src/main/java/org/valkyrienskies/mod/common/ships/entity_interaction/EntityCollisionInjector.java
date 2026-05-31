@@ -284,8 +284,8 @@ public class EntityCollisionInjector {
         entity.resetPositionToBB();
 
         // We are on the ship that we are riding
-        if (entity.ridingEntity instanceof EntityMountable) {
-            final EntityMountable entityMountable = (EntityMountable) entity.ridingEntity;
+        if (entity.getRidingEntity() instanceof EntityMountable) {
+            final EntityMountable entityMountable = (EntityMountable) entity.getRidingEntity();
             if (entityMountable.getReferencePosOptional().isPresent()) {
                 final Optional<PhysicsObject> physicsObjectOptional = ValkyrienUtils.getPhysoManagingBlock(
                         entity.world, entityMountable.getReferencePosOptional().get()
@@ -546,13 +546,13 @@ public class EntityCollisionInjector {
                     chunkYIndex = 0;
                 }
 
-                if (chunkYIndex >= chunkIn.entityLists.length) {
-                    chunkYIndex = chunkIn.entityLists.length - 1;
+                if (chunkYIndex >= chunkIn.getEntityLists().length) {
+                    chunkYIndex = chunkIn.getEntityLists().length - 1;
                 }
 
-                chunkIn.entityLists[chunkYIndex].add(entity);
+                chunkIn.getEntityLists()[chunkYIndex].add(entity);
                 entity.doBlockCollisions();
-                chunkIn.entityLists[chunkYIndex].remove(entity);
+                chunkIn.getEntityLists()[chunkYIndex].remove(entity);
             }
 
             setEntityPositionAndUpdateBB(entity, posX, posY, posZ);
@@ -568,7 +568,7 @@ public class EntityCollisionInjector {
         entity.posZ = z;
         float f = entity.width / 2.0F;
         float f1 = entity.height;
-        entity.boundingBox = new AxisAlignedBB(x - f, y, z - f, x + f, y + f1, z + f);
+        entity.setEntityBoundingBox(new AxisAlignedBB(x - f, y, z - f, x + f, y + f1, z + f));
     }
 
     private static boolean isDifSignificant(double dif1, double d2) {

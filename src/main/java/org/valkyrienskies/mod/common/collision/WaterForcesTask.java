@@ -102,9 +102,9 @@ public class WaterForcesTask implements Callable<Void> {
                     if (chunk == null)
                         continue;
                     for (int y = minY; y <= maxY; y++) {
-                        final ExtendedBlockStorage blockStorage = chunk.storageArrays[y >> 4];
+                        final ExtendedBlockStorage blockStorage = chunk.getBlockStorageArray()[y >> 4];
                         if (blockStorage != null) {
-                            final IBitOctree terrainOctree = ((ITerrainOctreeProvider) blockStorage.data).getSolidOctree();
+                            final IBitOctree terrainOctree = ((ITerrainOctreeProvider) blockStorage.getData()).getSolidOctree();
                             if (terrainOctree.get(x & 15, y & 15, z & 15)) {
                                 // Assume both the water block and terrain block are spheres, then compute the volume
                                 // that overlaps

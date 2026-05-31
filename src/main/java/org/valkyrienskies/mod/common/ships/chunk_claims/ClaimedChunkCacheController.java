@@ -123,7 +123,7 @@ public class ClaimedChunkCacheController implements Iterable<Chunk> {
                     entry.players = parent.getWatchingPlayers();
                 }
 
-                chunk.tileEntities.forEach(parent::onSetTileEntity);
+                chunk.getTileEntityMap().forEach(parent::onSetTileEntity);
 
                 setChunkAt(x, z, chunk);
             } catch (Exception e) {
@@ -139,13 +139,13 @@ public class ClaimedChunkCacheController implements Iterable<Chunk> {
         while (chunkIterator.hasNext()) {
             final Chunk chunk = chunkIterator.next();
             // First delete all the TileEntities in the chunk
-            List<BlockPos> chunkTilesPos = new ArrayList<>(chunk.tileEntities.keySet());
+            List<BlockPos> chunkTilesPos = new ArrayList<>(chunk.getTileEntityMap().keySet());
             for (BlockPos tilePos : chunkTilesPos) {
-                chunk.world.removeTileEntity(tilePos);
+                chunk.getWorld().removeTileEntity(tilePos);
             }
             // Then replace all the chunk's block storage with null.
             for (int i = 0; i < 16; i++) {
-                chunk.storageArrays[i] = null;
+                chunk.getBlockStorageArray()[i] = null;
             }
             chunk.markDirty();
 

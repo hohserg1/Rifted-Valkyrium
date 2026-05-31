@@ -1,12 +1,10 @@
 [
   {
     "modid": "valkyrienskies",
-    "name": "Valkyrien Skies Core",
-    "description": "Minecraft ships with physics!",
+    "name": "Rifted Valkyrium",
+    "description": "Valkyrien Skies 1, rifted and revitalized!",
     "version": "1.0.9",
     "mcversion": "${mcversion}",
-    "url": "https://www.curseforge.com/minecraft/mc-mods/unvalkyried-heavens",
-    "updateUrl": "https://raw.githubusercontent.com/LordDarthDan/Unvalkyried-Heavens/master/update.json",
     "authorList": [
       "triode_",
       "DaPorkchop_",

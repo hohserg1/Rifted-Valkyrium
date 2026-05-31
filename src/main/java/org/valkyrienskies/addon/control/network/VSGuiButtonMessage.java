@@ -60,7 +60,7 @@ public class VSGuiButtonMessage implements IMessage {
     public static class Handler implements IMessageHandler<VSGuiButtonMessage, IMessage> {
         @Override
         public IMessage onMessage(VSGuiButtonMessage message, MessageContext ctx) {
-            IThreadListener mainThread = ctx.getServerHandler().server;
+            IThreadListener mainThread = ctx.getServerHandler().player.server;
             mainThread.addScheduledTask(() -> {
                 World playerWorld = ctx.getServerHandler().player.world;
                 TileEntity tileEntity = playerWorld.getTileEntity(message.getTileEntityPos());

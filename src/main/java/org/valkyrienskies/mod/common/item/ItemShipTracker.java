@@ -38,7 +38,7 @@ public class ItemShipTracker extends BaseItem {
             final ItemStack heldItemStack = player.getHeldItem(hand);
             final NBTTagCompound stackTagCompound;
             if (heldItemStack.hasTagCompound()) {
-                stackTagCompound = heldItemStack.stackTagCompound;
+                stackTagCompound = heldItemStack.getTagCompound();
             } else {
                 stackTagCompound = new NBTTagCompound();
             }
@@ -62,7 +62,7 @@ public class ItemShipTracker extends BaseItem {
             final ItemStack heldItemStack = player.getHeldItem(hand);
             final NBTTagCompound stackTagCompound;
             if (heldItemStack.hasTagCompound()) {
-                stackTagCompound = heldItemStack.stackTagCompound;
+                stackTagCompound = heldItemStack.getTagCompound();
             } else {
                 stackTagCompound = new NBTTagCompound();
             }

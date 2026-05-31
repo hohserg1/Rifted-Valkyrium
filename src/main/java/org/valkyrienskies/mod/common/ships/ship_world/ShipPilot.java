@@ -28,7 +28,7 @@ public class ShipPilot {
     private Vector3d targetAngularVelocity;
 
     public ShipPilot(final EntityPlayer pilot) {
-        this.pilot = pilot.entityUniqueID;
+        this.pilot = pilot.getUniqueID();
         this.initialYaw = pilot.rotationYaw;
         this.targetLinearVelocity = new Vector3d();
         this.targetAngularVelocity = new Vector3d();

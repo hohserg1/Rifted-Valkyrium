@@ -31,16 +31,16 @@ class LevitationUtil {
                         // Add levitation based on player inventory
                         if (VSWorldConfig.valkyriumItemsLiftPlayers && !entity.isCreative) {
                             var addedUpVelocity = 0.0
-                            for (stackArray in entity.inventory.allInventories) {
+                            for (stackArray in listOf(entity.inventory.mainInventory, entity.inventory.armorInventory, entity.inventory.offHandInventory)) {
                                 for (stack in stackArray) {
                                     if (stack != null) {
                                         if (stack.getItem() is ItemBlock) {
                                             val blockItem = stack.getItem() as ItemBlock
                                             if (blockItem.block is BlockValkyriumOre) {
-                                                addedUpVelocity += .00025 * stack.stackSize * VSWorldConfig.valkyriumOreForce
+                                                addedUpVelocity += .00025 * stack.count * VSWorldConfig.valkyriumOreForce
                                             }
                                         } else if (stack.getItem() is ItemValkyriumCrystal) {
-                                            addedUpVelocity += .00025 * stack.stackSize * VSWorldConfig.valkyriumCrystalForce
+                                            addedUpVelocity += .00025 * stack.count * VSWorldConfig.valkyriumCrystalForce
                                         }
                                     }
                                 }

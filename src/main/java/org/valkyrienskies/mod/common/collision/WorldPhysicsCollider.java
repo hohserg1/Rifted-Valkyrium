@@ -280,11 +280,11 @@ public class WorldPhysicsCollider {
         if (chunk == null) {
             return false;
         }
-        final ExtendedBlockStorage blockStorage = chunk.storageArrays[posY >> 4];
+        final ExtendedBlockStorage blockStorage = chunk.getBlockStorageArray()[posY >> 4];
         if (blockStorage == null) {
             return false;
         }
-        final IBitOctree octree = ITerrainOctreeProvider.class.cast(blockStorage.data).getSolidOctree();
+        final IBitOctree octree = ITerrainOctreeProvider.class.cast(blockStorage.getData()).getSolidOctree();
         return octree.get(posX & 15, posY & 15, posZ & 15);
     }
 
@@ -549,7 +549,7 @@ public class WorldPhysicsCollider {
 
             Chunk chunk = cache.chunkArray[arrayChunkX][arrayChunkZ];
             for (int storageY = minY >> 4; storageY <= maxY >> 4; storageY++) {
-                ExtendedBlockStorage extendedblockstorage = chunk.storageArrays[storageY];
+                ExtendedBlockStorage extendedblockstorage = chunk.getBlockStorageArray()[storageY];
                 if (extendedblockstorage != null) {
                     int minStorageX = chunkX << 4;
                     int minStorageY = storageY << 4;
@@ -559,7 +559,7 @@ public class WorldPhysicsCollider {
                     int maxStorageY = minStorageY + 16;
                     int maxStorageZ = minStorageZ + 16;
 
-                    final ITerrainOctreeProvider provider = (ITerrainOctreeProvider) extendedblockstorage.data;
+                    final ITerrainOctreeProvider provider = (ITerrainOctreeProvider) extendedblockstorage.getData();
                     final IBitOctree octree = provider.getSolidOctree();
 
                     for (int x = minStorageX; x < maxStorageX; x++) {
@@ -686,8 +686,8 @@ public class WorldPhysicsCollider {
     private boolean checkForCollisionFast(final Chunk chunk, final int localX, final int localY,
         final int localZ,
         final int x, final int y, final int z, final TIntList output) {
-        if (chunk.storageArrays[localY >> 4] != null) {
-            ITerrainOctreeProvider provider = (ITerrainOctreeProvider) chunk.storageArrays[localY >> 4]
+        if (chunk.getBlockStorageArray()[localY >> 4] != null) {
+            ITerrainOctreeProvider provider = (ITerrainOctreeProvider) chunk.getBlockStorageArray()[localY >> 4]
                 .getData();
             IBitOctree octreeInLocal = provider.getSolidOctree();
             if (octreeInLocal.get(localX & 15, localY & 15, localZ & 15)) {
