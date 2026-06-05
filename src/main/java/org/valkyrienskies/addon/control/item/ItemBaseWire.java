@@ -5,6 +5,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumActionResult;
@@ -17,6 +18,7 @@ import net.minecraft.world.World;
 import org.valkyrienskies.addon.control.ValkyrienSkiesControl;
 import org.valkyrienskies.addon.control.capability.lastRelay.ICapabilityLastRelay;
 import org.valkyrienskies.addon.control.config.VSControlConfig;
+import org.valkyrienskies.addon.control.network.VSSetWireConnectionMessage;
 import org.valkyrienskies.addon.control.nodenetwork.EnumWireType;
 import org.valkyrienskies.addon.control.nodenetwork.IVSNode;
 import org.valkyrienskies.addon.control.nodenetwork.IVSNodeProvider;
@@ -51,10 +53,7 @@ public class ItemBaseWire extends BaseItem {
         if (currentTile instanceof IVSNodeProvider && !worldIn.isRemote) {
             ICapabilityLastRelay inst = stack.getCapability(ValkyrienSkiesControl.lastRelayCapability, null);
             if (inst == null) return EnumActionResult.PASS;
-            if (!inst.hasLastRelay()) {
-                inst.setLastRelay(pos);
-                // Draw a wire in the player's hand after this
-            }
+            if (!inst.hasLastRelay()) this.setLastRelay(player, hand, inst, pos);
             else {
                 BlockPos lastPos = inst.getLastRelay();
                 if (lastPos == null) return EnumActionResult.PASS;
@@ -83,16 +82,16 @@ public class ItemBaseWire extends BaseItem {
                                 player.sendMessage(new TextComponentString(TextFormatting.RED +
                                         I18n.format("message.vs_control.error_relay_wire_limit", VSControlConfig.networkRelayLimit)));
                             }
-                            inst.setLastRelay(null);
+                            this.setLastRelay(player, hand, inst, null);
                         }
                     }
                     else {
                         player.sendMessage(new TextComponentString(TextFormatting.RED
                                 + I18n.format("message.vs_control.error_relay_wire_length")));
-                        inst.setLastRelay(null);
+                        this.setLastRelay(player, hand, inst, null);
                     }
                 }
-                else inst.setLastRelay(pos);
+                else this.setLastRelay(player, hand, inst, pos);
             }
         }
 
@@ -103,4 +102,13 @@ public class ItemBaseWire extends BaseItem {
         return EnumActionResult.PASS;
     }
 
+    private void setLastRelay(EntityPlayer player, EnumHand hand, ICapabilityLastRelay inst, @Nullable BlockPos pos) {
+        inst.setLastRelay(pos);
+        if (player instanceof EntityPlayerMP) {
+            ValkyrienSkiesControl.controlNodeNetwork.sendTo(
+                    new VSSetWireConnectionMessage(hand, pos),
+                    (EntityPlayerMP) player
+            );
+        }
+    }
 }

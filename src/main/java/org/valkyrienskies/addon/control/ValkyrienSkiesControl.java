@@ -231,6 +231,11 @@ public class ValkyrienSkiesControl {
                 VSStoppedUsingControlNodeMessage.class,
                 3, Side.SERVER
         );
+        controlNodeNetwork.registerMessage(
+                VSSetWireConnectionMessage.Handler.class,
+                VSSetWireConnectionMessage.class,
+                4, Side.CLIENT
+        );
     }
 
     /**

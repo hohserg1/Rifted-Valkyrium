@@ -7,7 +7,9 @@ import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.client.event.ModelBakeEvent;
@@ -18,11 +20,10 @@ import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.client.model.ModelLoaderRegistry;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.valkyrienskies.addon.control.capability.controlNodeUser.ICapabilityControlNodeUser;
+import org.valkyrienskies.addon.control.capability.lastRelay.ICapabilityLastRelay;
+import org.valkyrienskies.addon.control.item.ItemBaseWire;
 import org.valkyrienskies.addon.control.renderer.infuser_core_rendering.InfuserCoreBakedModel;
 import org.valkyrienskies.addon.control.tileentity.ITileEntityControlNode;
-import org.valkyrienskies.mod.common.capability.VSCapabilityRegistry;
-import org.valkyrienskies.mod.common.capability.ship_pilot.IShipPilot;
-import org.valkyrienskies.mod.common.piloting.ITileEntityPilotable;
 
 public class ControlEventsClient {
     @SubscribeEvent
@@ -30,16 +31,47 @@ public class ControlEventsClient {
         Minecraft minecraft = Minecraft.getMinecraft();
         EntityPlayer player = Minecraft.getMinecraft().player;
         FontRenderer fontRenderer = minecraft.fontRenderer;
-        if (fontRenderer != null && player != null && event.getType() == RenderGameOverlayEvent.ElementType.TEXT) {
-            ICapabilityControlNodeUser nodeUser = Minecraft.getMinecraft().player.getCapability(ValkyrienSkiesControl.controlNodeUserCapability, null);
-            if (nodeUser == null || nodeUser.getUsedControlNodePos() == null) return;
 
+        if (fontRenderer == null || player == null || event.getType() != RenderGameOverlayEvent.ElementType.TEXT) return;
+
+        ScaledResolution scaledresolution = new ScaledResolution(Minecraft.getMinecraft());
+
+        //---render pilot text---
+        ICapabilityControlNodeUser nodeUser = Minecraft.getMinecraft().player.getCapability(ValkyrienSkiesControl.controlNodeUserCapability, null);
+        if (nodeUser != null && nodeUser.getUsedControlNodePos() != null) {
             TileEntity pilotedTile = player.getEntityWorld().getTileEntity(nodeUser.getUsedControlNodePos());
-            if (!(pilotedTile instanceof ITileEntityControlNode usedControlNode)) return;
-
-            ScaledResolution scaledresolution = new ScaledResolution(Minecraft.getMinecraft());
-            usedControlNode.renderPilotText(fontRenderer, scaledresolution);
+            if (pilotedTile instanceof ITileEntityControlNode usedControlNode) {
+                usedControlNode.renderPilotText(fontRenderer, scaledresolution);
+            }
         }
+
+        //---render wire connection text---
+        ItemStack mainHandStack = player.getHeldItem(EnumHand.MAIN_HAND);
+        ItemStack offHandStack = player.getHeldItem(EnumHand.OFF_HAND);
+
+        if (mainHandStack.getItem() instanceof ItemBaseWire) {
+            this.renderWireConnectivityText(mainHandStack, fontRenderer, scaledresolution);
+        }
+        else if (offHandStack.getItem() instanceof ItemBaseWire && player.isSneaking()) {
+            this.renderWireConnectivityText(offHandStack, fontRenderer, scaledresolution);
+        }
+    }
+
+    //helper method for rendering text involving held wire
+    private void renderWireConnectivityText(ItemStack wireItemStack, FontRenderer fontRenderer, ScaledResolution scaledresolution) {
+        if (!(wireItemStack.getItem() instanceof ItemBaseWire)) return;
+
+        ICapabilityLastRelay inst = wireItemStack.getCapability(ValkyrienSkiesControl.lastRelayCapability, null);
+        if (inst == null || inst.getLastRelay() == null) return;
+
+        // White text.
+        int color = 0xFFFFFF;
+        // Extra spaces so the that the text is closer to the middle when rendered.
+        String message = "Currently creating connection...";
+        int i = scaledresolution.getScaledWidth();
+        int height = scaledresolution.getScaledHeight() - 35;
+        float middle = (float) (i / 2 - fontRenderer.getStringWidth(message) / 2);
+        fontRenderer.drawStringWithShadow(message, middle, height, color);
     }
 
     /**
