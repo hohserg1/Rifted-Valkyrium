@@ -7,12 +7,14 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.NotNull;
 import org.valkyrienskies.mod.common.network.VSNetwork;
 
 import javax.annotation.Nullable;
 import java.util.*;
 
 public class VSNode_TileEntity implements IVSNode {
+    @NotNull
     private final TileEntity parentTile;
     //key is the blockpos of node it connects to, val is the wire that goes to that blockpos
     private final HashMap<BlockPos, EnumWireType> linkedNodesAndWireTypes;
@@ -23,7 +25,7 @@ public class VSNode_TileEntity implements IVSNode {
     private boolean isValid;
     private Graph nodeGraph;
 
-    public VSNode_TileEntity(TileEntity parent, int maximumConnections) {
+    public VSNode_TileEntity(@NotNull TileEntity parent, int maximumConnections) {
         this.parentTile = parent;
         this.linkedNodesAndWireTypes = new HashMap<>();
         this.immutableLinkedNodesAndWireTypes = Collections.unmodifiableMap(this.linkedNodesAndWireTypes);

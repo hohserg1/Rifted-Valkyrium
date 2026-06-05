@@ -8,7 +8,7 @@ public interface ICapabilityLastRelay {
     @Nullable
     BlockPos getLastRelay();
 
-    void setLastRelay(BlockPos pos);
+    void setLastRelay(@Nullable BlockPos pos);
 
     boolean hasLastRelay();
 }

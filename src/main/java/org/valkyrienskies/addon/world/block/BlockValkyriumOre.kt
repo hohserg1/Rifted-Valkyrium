@@ -15,7 +15,7 @@ import net.minecraft.world.IBlockAccess
 import net.minecraft.world.World
 import org.valkyrienskies.addon.world.EntityFallingUpBlock
 import org.valkyrienskies.addon.world.ValkyrienSkiesWorld
-import org.valkyrienskies.addon.world.util.BaseBlock
+import org.valkyrienskies.mod.common.util.BaseBlock
 import java.util.*
 
 class BlockValkyriumOre : BaseBlock("valkyrium_ore", Material.ROCK, 3.0f / 15.0f, true) {

@@ -12,7 +12,7 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import org.valkyrienskies.addon.control.util.BaseBlock;
+import org.valkyrienskies.mod.common.util.BaseBlock;
 
 // Same as vanilla one but uses baseblock
 // pls no sue :3

@@ -5,9 +5,9 @@ import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.EnumFacing;
+import org.valkyrienskies.mod.common.util.BaseBlock;
 
 public abstract class BlockVSDirectional extends BaseBlock {
-
     public static final PropertyDirection FACING = PropertyDirection.create("facing");
 
     protected BlockVSDirectional(String name, Material mat, float light, boolean creativeTab) {

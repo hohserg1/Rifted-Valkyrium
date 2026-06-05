@@ -17,7 +17,6 @@ import java.util.Set;
  * @author thebest108, DeltaNedas
  */
 public interface IVSNode extends GraphObject {
-
     String NBT_DATA_KEY = "VSNode_Tile_Data";
 
     /**

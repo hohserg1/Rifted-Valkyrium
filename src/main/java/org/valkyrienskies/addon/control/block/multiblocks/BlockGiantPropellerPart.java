@@ -12,7 +12,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import org.joml.Vector3dc;
-import org.valkyrienskies.addon.control.util.BaseBlock;
+import org.valkyrienskies.mod.common.util.BaseBlock;
 import org.valkyrienskies.mod.common.block.IBlockForceProvider;
 import org.valkyrienskies.mod.common.ships.ship_world.PhysicsObject;
 

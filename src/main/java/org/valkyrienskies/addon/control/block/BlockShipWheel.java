@@ -4,7 +4,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
-import org.valkyrienskies.addon.control.util.BaseBlock;
+import org.valkyrienskies.mod.common.util.BaseBlock;
 
 import javax.annotation.Nonnull;
 

@@ -12,7 +12,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
 import org.valkyrienskies.addon.control.ValkyrienSkiesControl;
-import org.valkyrienskies.addon.control.util.BaseBlock;
+import org.valkyrienskies.mod.common.util.BaseBlock;
 
 public class BlockDummyTelegraph extends BaseBlock {
 

@@ -4,15 +4,13 @@ import net.minecraft.item.Item;
 import org.valkyrienskies.addon.control.ValkyrienSkiesControl;
 
 public enum EnumWireType {
-    RELAY("relay_wire", ValkyrienSkiesControl.INSTANCE.relayWire),
-    VANISHING("vanishing_wire", ValkyrienSkiesControl.INSTANCE.relayWire);
+    RELAY("relay_wire"),
+    VANISHING("vanishing_wire");
 
     private final String name;
-    private final Item item;
 
-    EnumWireType(String name, Item item) {
+    EnumWireType(String name) {
         this.name = name;
-        this.item = item;
     }
 
     public String toString() {
@@ -20,6 +18,8 @@ public enum EnumWireType {
     }
 
     public Item toItem() {
-        return this.item;
+        if (this == RELAY) return ValkyrienSkiesControl.INSTANCE.relayWire;
+        if (this == VANISHING) return ValkyrienSkiesControl.INSTANCE.vanishingWire;
+        return null;
     }
 }

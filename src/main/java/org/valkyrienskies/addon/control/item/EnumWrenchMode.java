@@ -4,7 +4,7 @@ public enum EnumWrenchMode {
     // Construct not Assemble because it would prob be mixed up with infuser
     CONSTRUCT("construct"), DECONSTRUCT("deconstruct");
 
-    private String name;
+    private final String name;
 
     EnumWrenchMode(String name) {
         this.name = name;

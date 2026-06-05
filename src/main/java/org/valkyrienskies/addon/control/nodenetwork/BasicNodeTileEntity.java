@@ -14,12 +14,11 @@ import javax.annotation.Nullable;
 import java.util.Iterator;
 
 public abstract class BasicNodeTileEntity extends TileEntity implements IVSNodeProvider, ITickable {
-
     private final VSNode_TileEntity tileNode;
     private boolean firstUpdate;
 
     public BasicNodeTileEntity() {
-        this.tileNode = new VSNode_TileEntity(this, getMaximumConnections());
+        this.tileNode = new VSNode_TileEntity(this, this.getMaximumConnections());
         this.firstUpdate = true;
     }
 

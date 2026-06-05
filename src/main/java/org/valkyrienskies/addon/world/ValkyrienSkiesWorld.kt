@@ -3,6 +3,7 @@ package org.valkyrienskies.addon.world
 import net.minecraft.block.Block
 import net.minecraft.command.ServerCommandManager
 import net.minecraft.item.Item
+import net.minecraft.item.ItemBlock
 import net.minecraft.potion.Potion
 import net.minecraft.potion.PotionType
 import net.minecraft.util.ResourceLocation
@@ -113,7 +114,7 @@ class ValkyrienSkiesWorld {
         @JvmStatic
         fun registerBlocks(event: RegistryEvent.Register<Block?>) {
             log.debug("Registering blocks...")
-            INSTANCE.valkyriumOre = BlockValkyriumOre()
+            INSTANCE.valkyriumOre = registerBlock(BlockValkyriumOre())
 
             // Actual registering
             val blockArray = BLOCKS.toTypedArray()
@@ -137,6 +138,12 @@ class ValkyrienSkiesWorld {
         @JvmStatic
         fun registerPotionTypes(event: RegistryEvent.Register<PotionType?>) {
             PotionInit.registerPotionTypes(event)
+        }
+
+        private fun <T : Block> registerBlock(block: T): T {
+            BLOCKS.add(block)
+            ITEMS.add(ItemBlock(block).setRegistryName(block.registryName))
+            return block
         }
     }
 }

@@ -16,7 +16,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import org.valkyrienskies.addon.control.tileentity.TileEntityGearbox;
-import org.valkyrienskies.addon.control.util.BaseBlock;
+import org.valkyrienskies.mod.common.util.BaseBlock;
 
 import javax.annotation.Nullable;
 import java.util.List;

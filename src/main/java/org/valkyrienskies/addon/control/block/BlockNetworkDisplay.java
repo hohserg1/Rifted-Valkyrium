@@ -16,7 +16,7 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import org.valkyrienskies.addon.control.nodenetwork.IVSNode;
 import org.valkyrienskies.addon.control.tileentity.TileEntityNetworkDisplay;
-import org.valkyrienskies.addon.control.util.BaseBlock;
+import org.valkyrienskies.mod.common.util.BaseBlock;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

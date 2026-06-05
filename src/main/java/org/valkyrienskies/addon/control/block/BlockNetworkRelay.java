@@ -1,6 +1,5 @@
 package org.valkyrienskies.addon.control.block;
 
-import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.block.state.BlockFaceShape;
@@ -9,17 +8,20 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemShears;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import org.valkyrienskies.addon.control.config.VSControlConfig;
+import org.valkyrienskies.addon.control.item.ItemBaseWire;
 import org.valkyrienskies.addon.control.tileentity.TileEntityNetworkRelay;
-import org.valkyrienskies.addon.control.util.BaseBlock;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -27,7 +29,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
 @ParametersAreNonnullByDefault
-public class BlockNetworkRelay extends BaseBlock implements ITileEntityProvider {
+public class BlockNetworkRelay extends BlockNodeComponentBasic {
     public static final PropertyDirection FACING = PropertyDirection.create("facing");
 
     private static final AxisAlignedBB EAST = new AxisAlignedBB(0D / 16D, 5D / 16D, 5D / 16D,
@@ -41,7 +43,7 @@ public class BlockNetworkRelay extends BaseBlock implements ITileEntityProvider 
     private static final AxisAlignedBB UP = new AxisAlignedBB(5D / 16D, 0, 5D / 16D, 11D / 16D,
         6D / 16D, 11D / 16D);
     private static final AxisAlignedBB DOWN = new AxisAlignedBB(5D / 16D, 10D / 16D, 5D / 16D,
-        11D / 16D, 16D / 16D, 11D / 16D);
+        11D / 16D, 1D, 11D / 16D);
 
     public BlockNetworkRelay() {
         super("network_relay", Material.IRON, 0.0F, true);
@@ -91,8 +93,10 @@ public class BlockNetworkRelay extends BaseBlock implements ITileEntityProvider 
      */
     @Override
     @Nonnull
-    public IBlockState getStateForPlacement(World worldIn, BlockPos pos, EnumFacing facing,
-        float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer) {
+    public IBlockState getStateForPlacement(
+            World worldIn, BlockPos pos, EnumFacing facing,
+            float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer
+    ) {
         return this.getDefaultState().withProperty(FACING, facing);
     }
 
@@ -139,5 +143,28 @@ public class BlockNetworkRelay extends BaseBlock implements ITileEntityProvider 
     @Nonnull
     public TileEntity createNewTileEntity(World worldIn, int meta) {
         return new TileEntityNetworkRelay();
+    }
+
+    @Override
+    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ) {
+        if (worldIn.isRemote) return true;
+
+        //block further interactions when dealing with wires
+        ItemStack heldItem = playerIn.getHeldItem(hand);
+        if (heldItem.getItem() instanceof ItemBaseWire) return false;
+
+        //manage connections when dealing with shears.
+        if (heldItem.getItem() instanceof ItemShears) {
+            this.handleWireRemoval(worldIn, pos);
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
+        this.handleWireRemoval(worldIn, pos);
+        super.breakBlock(worldIn, pos, state);
     }
 }

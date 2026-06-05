@@ -5,7 +5,6 @@ import org.valkyrienskies.addon.control.config.VSControlConfig;
 import org.valkyrienskies.addon.control.nodenetwork.BasicNodeTileEntity;
 
 public class TileEntityNetworkRelay extends BasicNodeTileEntity {
-
     public TileEntityNetworkRelay() {
         super();
     }

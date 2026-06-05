@@ -30,7 +30,6 @@ public class ItemBaseWire extends BaseItem {
 
     public ItemBaseWire(EnumWireType wireType) {
 		super(wireType.toString(), true);
-        this.setMaxDamage(80);
         this.wireType = wireType;
     }
 
@@ -42,11 +41,10 @@ public class ItemBaseWire extends BaseItem {
     }
 
     @Override
-    public EnumActionResult onItemUse(EntityPlayer player, World worldIn, BlockPos pos,
-        EnumHand hand,
-        EnumFacing facing, float hitX, float hitY, float hitZ) {
-        IBlockState clickedState = worldIn.getBlockState(pos);
-        Block block = clickedState.getBlock();
+    public EnumActionResult onItemUse(
+            EntityPlayer player, World worldIn, BlockPos pos,
+            EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ
+    ) {
         TileEntity currentTile = worldIn.getTileEntity(pos);
         ItemStack stack = player.getHeldItem(hand);
 
@@ -69,18 +67,18 @@ public class ItemBaseWire extends BaseItem {
                         IVSNode lastPosNode = ((IVSNodeProvider) lastPosTile).getNode();
                         IVSNode currentPosNode = ((IVSNodeProvider) currentTile).getNode();
                         if (lastPosNode != null && currentPosNode != null) {
+                            //inform the user that theres already a connection when they try to connect
                             if (currentPosNode.isLinkedToNode(lastPosNode)) {
-                                currentPosNode.breakConnection(lastPosNode);
-                                // Break connection and give player the correct wire back
-                                ItemStack drop = new ItemStack(wireType.toItem());
-                                if (player.inventory.addItemStackToInventory(drop)) {
-                                    player.dropItem(drop, false);
-                                }
+                                player.sendMessage(new TextComponentString(TextFormatting.RED +
+                                        I18n.format("message.vs_control.error_relay_connection_already_exists")));
+
                             }
+                            //create connection and consume wire
                             else if (currentPosNode.canLinkToOtherNode(lastPosNode)) {
                                 currentPosNode.makeConnection(lastPosNode, this.wireType);
-                                stack.damageItem(1, player);
+                                if (!player.isCreative()) stack.shrink(1);
                             }
+                            //warn that no more connections can be made
                             else {
                                 player.sendMessage(new TextComponentString(TextFormatting.RED +
                                         I18n.format("message.vs_control.error_relay_wire_limit", VSControlConfig.networkRelayLimit)));
