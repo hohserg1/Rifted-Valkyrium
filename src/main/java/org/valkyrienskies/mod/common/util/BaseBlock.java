@@ -6,6 +6,7 @@ import net.minecraft.item.Item;
 import org.valkyrienskies.mod.client.BaseModel;
 import org.valkyrienskies.mod.common.ValkyrienSkiesMod;
 
+// Addons need to provide their own copies of this class.
 public class BaseBlock extends Block implements BaseModel {
     public BaseBlock(String name, Material mat, float light, boolean creativeTab) {
         super(mat);

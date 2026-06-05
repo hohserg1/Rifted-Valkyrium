@@ -5,7 +5,7 @@ import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
-import org.valkyrienskies.addon.world.util.BaseItem;
+import org.valkyrienskies.mod.common.util.BaseItem;
 
 import java.util.List;
 

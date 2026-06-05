@@ -17,7 +17,7 @@ import net.minecraft.world.World;
 import org.valkyrienskies.addon.control.block.multiblocks.ITileEntityMultiblockPart;
 import org.valkyrienskies.addon.control.config.VSControlConfig;
 import org.valkyrienskies.addon.control.tileentity.TileEntityGearbox;
-import org.valkyrienskies.addon.control.util.BaseItem;
+import org.valkyrienskies.mod.common.util.BaseItem;
 
 import javax.annotation.Nullable;
 import java.util.List;

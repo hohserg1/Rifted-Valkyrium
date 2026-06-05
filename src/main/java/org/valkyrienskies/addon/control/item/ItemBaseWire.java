@@ -22,7 +22,7 @@ import org.valkyrienskies.addon.control.network.VSSetWireConnectionMessage;
 import org.valkyrienskies.addon.control.nodenetwork.EnumWireType;
 import org.valkyrienskies.addon.control.nodenetwork.IVSNode;
 import org.valkyrienskies.addon.control.nodenetwork.IVSNodeProvider;
-import org.valkyrienskies.addon.control.util.BaseItem;
+import org.valkyrienskies.mod.common.util.BaseItem;
 
 import javax.annotation.Nullable;
 import java.util.List;

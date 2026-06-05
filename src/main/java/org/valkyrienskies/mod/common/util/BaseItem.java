@@ -10,10 +10,7 @@ public class BaseItem extends Item implements BaseModel {
         this.setTranslationKey(name);
         this.setRegistryName(name);
 
-        if (creativeTab) {
-            // No need to change this for addons
-            this.setCreativeTab(ValkyrienSkiesMod.VS_CREATIVE_TAB);
-        }
+        if (creativeTab) this.setCreativeTab(ValkyrienSkiesMod.VS_CREATIVE_TAB);
 
         ValkyrienSkiesMod.ITEMS.add(this);
     }
