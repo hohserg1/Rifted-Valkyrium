@@ -157,6 +157,10 @@ public class VSConfig extends VSConfigTemplate {
     @Comment("Prevents rain from going inside ships. Warning: mildly laggy")
     public static boolean accurateRain = true;
 
+    @Name("No Fall Damage")
+    @Comment("Prevents entities to take fall damage when on ship")
+    public static boolean noFallDamageOnShip = true;
+
     @Name("Collision Transparent Entities")
     @Comment("Entities which should move through ships without stopping")
     public static String[] collisionTransparentEntities = {"tfc:falling_block"};
