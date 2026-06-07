@@ -202,20 +202,21 @@ public abstract class MixinNetHandlerPlayServer {
             final double playerPitchInGlobal = pitchYawTuple.getFirst();
             final double playerYawInGlobal = pitchYawTuple.getSecond();
 
-            // Idk if this is needed, but I'm too bothered to change it
-            packetPlayer.moving = true;
+            if (lastTouchedShip != null) {
+                packetPlayer.moving = true;
 
-            // Then update the packet values to match the ones above.
-            packetPlayer.x = playerPosInShip.x();
-            packetPlayer.y = playerPosInShip.y();
-            packetPlayer.z = playerPosInShip.z();
-            packetPlayer.yaw = (float) playerYawInGlobal;
-            packetPlayer.pitch = (float) playerPitchInGlobal;
+                // Then update the packet values to match the ones above.
+                packetPlayer.x = playerPosInShip.x();
+                packetPlayer.y = playerPosInShip.y();
+                packetPlayer.z = playerPosInShip.z();
+                packetPlayer.yaw = (float) playerYawInGlobal;
+                packetPlayer.pitch = (float) playerPitchInGlobal;
 
-            // Set the player motion values to tell the NetHandlerPlayServer that the player is allowed to move this fast.
-            this.player.motionX = packetPlayer.x - this.firstGoodX;
-            this.player.motionY = packetPlayer.y - this.firstGoodY;
-            this.player.motionZ = packetPlayer.z - this.firstGoodZ;
+                // Set the player motion values to tell the NetHandlerPlayServer that the player is allowed to move this fast.
+                this.player.motionX = packetPlayer.x - this.firstGoodX;
+                this.player.motionY = packetPlayer.y - this.firstGoodY;
+                this.player.motionZ = packetPlayer.z - this.firstGoodZ;
+            }
 
             // Update the player draggable
             IEntityShipDraggable entityShipDraggable = this.player.getCapability(VSCapabilityRegistry.VS_ENTITY_SHIP_DRAGGABLE, null);
