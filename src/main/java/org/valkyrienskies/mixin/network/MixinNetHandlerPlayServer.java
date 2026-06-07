@@ -34,6 +34,8 @@ import valkyrienwarfare.api.TransformType;
 
 import java.util.*;
 
+import static org.valkyrienskies.mod.common.util.ValkyrienUtils.getEntityShipMovementDataFor;
+
 @Mixin(value = NetHandlerPlayServer.class)
 public abstract class MixinNetHandlerPlayServer {
 
@@ -113,7 +115,12 @@ public abstract class MixinNetHandlerPlayServer {
                     target = "Lnet/minecraft/world/WorldServer;getCollisionBoxes(Lnet/minecraft/entity/Entity;Lnet/minecraft/util/math/AxisAlignedBB;)Ljava/util/List;"
             ))
     private List<AxisAlignedBB> removeStuckInBlockMovementCheck(WorldServer worldServer, Entity entityIn, AxisAlignedBB aabb) {
-        return ImmutableList.of();
+        EntityShipMovementData entityShipMovementData = getEntityShipMovementDataFor(player);
+        if (entityShipMovementData.getLastTouchedShip() != null) {
+            return ImmutableList.of();
+        } else {
+            return player.getServerWorld().getCollisionBoxes(player, player.getEntityBoundingBox().shrink(0.0625F));
+        }
     }
 
     /**
@@ -126,7 +133,12 @@ public abstract class MixinNetHandlerPlayServer {
                     ordinal = 1
             ))
     private double allowMovementToBeVeryWrong(double originalConstant) {
-        return 10;
+        EntityShipMovementData entityShipMovementData = getEntityShipMovementDataFor(player);
+        if (entityShipMovementData.getLastTouchedShip() != null) {
+            return 10;
+        } else {
+            return 0.0625;
+        }
     }
 
     /**
