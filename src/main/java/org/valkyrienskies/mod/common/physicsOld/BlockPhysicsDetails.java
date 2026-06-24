@@ -1,23 +1,28 @@
 package org.valkyrienskies.mod.common.physicsOld;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockFence;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLeashKnot;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.init.Blocks;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 import org.valkyrienskies.mod.common.block.IBlockForceProvider;
 import org.valkyrienskies.mod.common.block.IBlockTorqueProvider;
 import org.valkyrienskies.mod.common.config.VSConfig;
+import org.valkyrienskies.mod.common.entity.EntityMountable;
 import org.valkyrienskies.mod.common.ships.ship_world.PhysicsObject;
+import valkyrienwarfare.api.TransformType;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class BlockPhysicsDetails {
     /**
@@ -143,6 +148,30 @@ public class BlockPhysicsDetails {
                 toSet.y = forceVector.y();
                 toSet.z = forceVector.z();
             }
+        } else if (block instanceof BlockFence) {
+            BlockPos realBlockPos = obj.getShipTransform().transform(pos, TransformType.SUBSPACE_TO_GLOBAL);
+            for (EntityMountable mountable : world.getEntitiesWithinAABB(EntityMountable.class, new AxisAlignedBB(realBlockPos).grow(1))) {
+                if (mountable.getMountedShip().isPresent() && mountable.getMountedShip().get() == obj) {
+                    for (Entity passenger : mountable.getPassengers()) {
+                        if (passenger instanceof EntityLeashKnot leash) {
+                            for (EntityLiving maybeLinked : world.getEntitiesWithinAABB(EntityLiving.class, new AxisAlignedBB(realBlockPos).grow(7))) {
+                                if (maybeLinked.getLeashed() && maybeLinked.getLeashHolder() == leash) {
+                                    Vec3d realPos = obj.getShipTransform().transform(new Vec3d(pos).add(0.5, 0.5, 0.5), TransformType.SUBSPACE_TO_GLOBAL);
+                                    Vec3d direction = maybeLinked.getPositionVector().subtract(realPos);
+                                    if (direction.lengthSquared() > 4 * 4) {
+                                        toSet.x = direction.x * 200;
+                                        if (obj.getShipBB().minY < 4)
+                                            toSet.y = 500;
+                                        toSet.z = direction.z * 200;
+                                    }
+                                    return;
+                                }
+                            }
+                            return;
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -151,7 +180,7 @@ public class BlockPhysicsDetails {
      */
     public static boolean isBlockProvidingForce(IBlockState state) {
         Block block = state.getBlock();
-        return block instanceof IBlockForceProvider || block instanceof IBlockTorqueProvider;
+        return block instanceof IBlockForceProvider || block instanceof IBlockTorqueProvider || block instanceof BlockFence;
     }
 
     /**

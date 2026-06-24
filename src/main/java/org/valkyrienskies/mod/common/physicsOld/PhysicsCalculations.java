@@ -1,6 +1,7 @@
 package org.valkyrienskies.mod.common.physicsOld;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockFence;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -239,15 +240,15 @@ public class PhysicsCalculations {
                 IBlockState state = getParent().getChunkAt(mutablePos.getX() >> 4, mutablePos.getZ() >> 4).getBlockState(mutablePos);
                 Block blockAt = state.getBlock();
 
-                if (blockAt instanceof IBlockForceProvider) {
+                if (blockAt instanceof IBlockForceProvider || blockAt instanceof BlockFence) {
                     try {
                         BlockPhysicsDetails.getForceFromState(state, mutablePos, worldObj,
                                 getPhysicsTimeDeltaPerPhysTick(),
                                 getParent(), blockForce);
 
-                        Vector3dc otherPosition = ((IBlockForceProvider) blockAt)
+                        Vector3dc otherPosition = blockAt instanceof IBlockForceProvider ? ((IBlockForceProvider) blockAt)
                                 .getCustomBlockForcePosition(worldObj,
-                                        mutablePos, state, getParent(), getPhysicsTimeDeltaPerPhysTick());
+                                    mutablePos, state, getParent(), getPhysicsTimeDeltaPerPhysTick()) : null;
 
                         if (otherPosition != null) {
                             inBodyWO.set(otherPosition);
