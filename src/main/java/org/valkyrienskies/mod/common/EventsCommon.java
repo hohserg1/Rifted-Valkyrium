@@ -3,6 +3,7 @@ package org.valkyrienskies.mod.common;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityHanging;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.item.EntityBoat;
 import net.minecraft.entity.item.EntityFallingBlock;
@@ -22,7 +23,10 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerSleepInBedEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.event.world.ExplosionEvent;
+import net.minecraftforge.event.world.ExplosionEvent.Start;
 import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.event.world.WorldEvent.Load;
+import net.minecraftforge.event.world.WorldEvent.Unload;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.eventhandler.Event.Result;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
@@ -34,6 +38,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent.WorldTickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
+import org.valkyrienskies.mixin.entity.MixinEntityHanging;
 import org.valkyrienskies.mod.common.capability.VSCapabilityRegistry;
 import org.valkyrienskies.mod.common.capability.entity_ship_draggable.IEntityShipDraggable;
 import org.valkyrienskies.mod.common.capability.ship_pilot.IShipPilot;
@@ -80,10 +85,8 @@ public class EventsCommon {
         Optional<PhysicsObject> physicsObject = ValkyrienUtils.getPhysoManagingBlock(world, posAt);
         if (!event.getWorld().isRemote && physicsObject.isPresent()
             && !(entity instanceof EntityFallingBlock)) {
-            if (entity instanceof EntityArmorStand
-                || entity instanceof EntityPig || entity instanceof EntityBoat) {
-                EntityMountable entityMountable = new EntityMountable(world,
-                    entity.getPositionVector(), CoordinateSpaceType.SUBSPACE_COORDINATES, posAt);
+            if (entity instanceof EntityArmorStand || entity instanceof EntityPig || entity instanceof EntityBoat || entity instanceof EntityHanging) {
+                EntityMountable entityMountable = new EntityMountable(world, entity.getPositionVector(), CoordinateSpaceType.SUBSPACE_COORDINATES, posAt);
                 world.spawnEntity(entityMountable);
                 entity.startRiding(entityMountable);
             }
@@ -152,7 +155,7 @@ public class EventsCommon {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onWorldLoad(WorldEvent.Load event) {
+    public static void onWorldLoad(Load event) {
         World world = event.getWorld();
         IShipWorld shipWorld = world.getCapability(VSCapabilityRegistry.VS_SHIP_WORLD, null);
         if (shipWorld == null) return;
@@ -163,7 +166,7 @@ public class EventsCommon {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onWorldUnload(WorldEvent.Unload event) {
+    public static void onWorldUnload(Unload event) {
         World world = event.getWorld();
         IShipWorld shipWorld = world.getCapability(VSCapabilityRegistry.VS_SHIP_WORLD, null);
         if (shipWorld == null) return;
@@ -206,7 +209,7 @@ public class EventsCommon {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onExplosionStart(ExplosionEvent.Start event) {
+    public static void onExplosionStart(Start event) {
         // Only run on server side
         if (event.getWorld().isRemote) return;
 

@@ -23,7 +23,9 @@
   ],
   "mixins": [
     "entity.MixinEntity",
+    "entity.MixinEntityHanging",
     "entity.MixinEntityIntrinsic",
+    "entity.MixinEntityLeashKnot",
     "entity.MixinEntityMinecart",
     "network.MixinNetHandlerPlayServer",
     "network.play.client.MixinCPacketPlayer",
